@@ -28,7 +28,7 @@ git clone https://github.com/zilogic-systems/zaero.git
 
 ```
 cd zaero/packages/
-pip install zaero-1.0.0-py3-none-any.whl
+python3 -m pip install zaero-1.0.0-py3-none-any.whl
 ```
 
 ### 3. Install Dependencies
@@ -50,7 +50,7 @@ playwright install --with-deps
 
 ### Fields to Fill in `dut.yaml`
 
-Before running the test suite, update the login credentials of the controller in `dut.yaml` with your environment-specific values.
+Before running the test suite, update the login credentials of the controller in `zaero/test/config/dut.yaml` with your environment-specific values.
 
 ### Update SSID Configuration in `test_ssid_config.py`
 
