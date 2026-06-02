@@ -1,30 +1,30 @@
 import zaero
-import zaero.utils.zi_logger as zi_logger
 import pytest
 import time
+from pathlib import Path
 
 @pytest.fixture(scope='session', autouse=True)
-def pitstop():
-    zi_logger.log(f"test.conftest.pitsop()")
-    obj = zaero.zaero()
-    obj.initialize_database("/home/manikandan/manikandan/projects/RDK-M/pitstop-rdkb-em/config/rdkb")
-    obj.connect_with_device("controller")
-    obj.ui_start_playwright("controller")
+def initialize():
+    zaero_obj = zaero.zaero()
+    current_file = Path(__file__)
+    current_directory = current_file.parent / "config"
+    zaero_obj.initialize_database(current_directory)
+    zaero_obj.connect_with_device("controller")
+    zaero_obj.ui_start_playwright("controller")
     time.sleep(1)
-    obj.ui_open_browser("controller")
+    zaero_obj.ui_open_browser("controller")
     time.sleep(1)
-    yield obj
-    obj.ui_close_browser("controller")
-    obj.ui_stop_playwright("controller")
-    del(obj)
+    yield zaero_obj
+    zaero_obj.ui_close_browser("controller")
+    zaero_obj.ui_stop_playwright("controller")
+    del(zaero_obj)
 
 @pytest.fixture(scope='function', autouse=True)
-def test_setup(pitstop):
-    zi_logger.log(f"test.conftest.test_setup()")
-    pitstop.ui_open_context("controller")
+def test_setup(initialize):
+    initialize.ui_open_context("controller")
     time.sleep(1)
-    pitstop.ui_open_page("controller")
+    initialize.ui_open_page("controller")
     time.sleep(1)
-    yield pitstop
-    pitstop.ui_close_page("controller")
-    pitstop.ui_close_context("controller")
+    yield initialize
+    initialize.ui_close_page("controller")
+    initialize.ui_close_context("controller")
