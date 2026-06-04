@@ -13,16 +13,24 @@
 # limitations under the License.
 #
 from zaero.base.base_feature_interface import BaseFeatureInterface
-from zaero.rdkb.feature_interface_modules import FeatureInterfaceModules
+from zaero.bridge.database_module import DatabaseModule
+from zaero.bridge.connection_modules import ConnectionModules
+from zaero.bridge.ui_modules import UiModules
 import zaero.utils.zi_logger as zi_logger
 import time
 
-class FeatureInterface(FeatureInterfaceModules):
+class FeatureInterfaceGUI(DatabaseModule,
+                          ConnectionModules,
+                          UiModules):
     
     def __init__(self):
         zi_logger.print_context()
-        FeatureInterfaceModules.__init__(self)
-        zi_logger.log("RDKB.FeatureInterface __init__ : END")
+        ConnectionModules.__init__(self)
+        DatabaseModule.__init__(self)
+        UiModules.__init__(self)
+        self.db_obj = self.get_database_module_object()
+        zi_logger.log(f"==== db_obj : {self.db_obj}")
+        zi_logger.log("RDKB.FeatureInterfaceGUI __init__ : END")
 
     def _create_ui_obj(self, device):
         zi_logger.print_context()
@@ -32,36 +40,33 @@ class FeatureInterface(FeatureInterfaceModules):
     def set_ssid(self,
                  device: str,
                  index: str,
-                 ssid: str,
-                 method = 'gui'):
+                 ssid: str):
         """
-        To set SSID for the specific interface.
+        To set SSDI in the GUI Application
         """
         zi_logger.print_context()
-        iface_obj = self.get_feature_interface_module_object(method)
-        iface_obj.set_ssid(device, index, ssid)
+        self._create_ui_obj(device)
+        self.ui_obj.ui_navigate_to_home_page(device)
+        time.sleep(3)
+        self.ui_obj.ui_navigate_to_required_page( "Wireless Settings")
+        time.sleep(3)
+        self.ui_obj.ui_update_input_and_save("Fronthaul", "#profile-ssid", ssid)        
+        time.sleep(3)
 
     def get_ssid(self,
                  device: str,
-                 index: str,
-                 method = 'gui') -> str:
+                 index: str) -> str:
         """
-        To get SSID assigned to a specific interface.
+        To set SSDI in the GUI Application
         """
         zi_logger.print_context()
-        iface_obj = self.get_feature_interface_module_object(method)
-        ssid = iface_obj.get_ssid(device, index)
-        return ssid
+        self._create_ui_obj(device)
 
     def check_ssid(self,
-                   device: str,
-                   index: str,
-                   ssid: str,
-                   method = 'gui'):
+                    device: str,
+                    index: str) -> str:
         """
-        To check SSID assigned to a specific interface,
-        Which will be derived from the radio index.
+        To read ssid from marinadb in controller
         """
         zi_logger.print_context()
-        iface_obj = self.get_feature_interface_module_object(method)
-        iface_obj.check_ssid(device, index, ssid)
+        self._create_ui_obj(device)

@@ -118,7 +118,8 @@ class Interface(DatabaseModule,
     def set_ssid(self,
                  device: str,
                  index: str,
-                 ssid: str):
+                 ssid: str,
+                 method = 'gui'):
         """
         Set the given Ssid for an interface,
         which will be derived from the given radio index.
@@ -140,20 +141,13 @@ class Interface(DatabaseModule,
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
         platform_obj = self.get_platform_module_object(platform)
-        ui_config= self.db_obj.read_from_database(device, 'ui_config')
-        if ui_config:
-            platform_obj.ui_set_ssid(device,
-                                     index,
-                                     ssid)
-        else:
-            platform_obj.set_ssid(device,
-                                  index,
-                                  ssid)
+        platform_obj.set_ssid(device, index, ssid, method)
 
     @keyword("Get Ssid")
     def get_ssid(self,
                  device: str,
-                 index: str) -> str:
+                 index: str,
+                 method = 'gui') -> str:
         """
         Get the currently configured ssid of an interface,
         which will be derived from the given radio index.
@@ -176,15 +170,15 @@ class Interface(DatabaseModule,
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
         platform_obj = self.get_platform_module_object(platform)
-        ssid = platform_obj.get_ssid(device,
-                                     index)
+        ssid = platform_obj.get_ssid(device, index, method)
         return ssid
 
     @keyword("Check Ssid")
     def check_ssid(self,
                    device: str,
                    index: str,
-                   ssid: str):
+                   ssid: str,
+                   method = 'gui'):
         """
         Check the currently configured ssid of an interface,
         which will be derived from the given radio index.
@@ -208,9 +202,7 @@ class Interface(DatabaseModule,
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
         platform_obj = self.get_platform_module_object(platform)
-        platform_obj.check_ssid(device,
-                                index,
-                                ssid)
+        platform_obj.check_ssid(device, index, ssid, method)
 
     @keyword("Set Encryption")
     def set_encryption(self,
