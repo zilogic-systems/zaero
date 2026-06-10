@@ -14,12 +14,13 @@
 #
 from zaero.utils.ssh_interface import SshInterface
 from zaero.utils.adb_interface import AdbInterface
+from zaero.utils.serial_interface import SerialInterface
 import zaero.utils.zi_logger as zi_logger
 
 class ConnectionModules:
 
     __instance = None
-    __modules = {'ssh': SshInterface, 'adb': AdbInterface}
+    __modules = {'ssh': SshInterface, 'adb': AdbInterface, 'serial': SerialInterface}
     __module_objects = {}
 
     def __new__(cls, *args, **kwargs):

@@ -38,8 +38,8 @@ class OperatingSystem(DatabaseModule,
         zi_logger.log(f"==== db_obj : {self.db_obj}")
         zi_logger.log("OperatingSystem __init__ : END")
 
-    @keyword("Get OpenWrt Version")
-    def get_openwrt_version(self,
+    @keyword("Get OS Version")
+    def get_os_version(self,
                               device: str) -> str:
         """
         Get the OpenWrt version string from the device
