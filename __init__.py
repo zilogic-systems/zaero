@@ -20,19 +20,21 @@ import zaero.utils.zi_logger as zi_logger
 from zaero.map.ping import Ping
 from zaero.map.operating_system import OperatingSystem
 from zaero.map.ui import Ui
+from zaero.map.packet_sniffer import PacketSniffer
 
 class zaero(Interface,
-                 Client,
-                 Connection,
-                 Database,
-                 Ping,
-                 OperatingSystem,
-                 Ui):
+            Client,
+            Connection,
+            Database,
+            Ping,
+            OperatingSystem,
+            Ui,
+	    PacketSniffer):
 
     def __init__(self):
         zi_logger.print_context()
         zi_logger.enable_log(True)
-        zi_logger.log("******* Pitstop __init__ : START")
+        zi_logger.log("******* zaero __init__ : START")
         Interface.__init__(self)
         Client.__init__(self)
         Connection.__init__(self)
@@ -40,4 +42,5 @@ class zaero(Interface,
         Ping.__init__(self)
         OperatingSystem.__init__(self)
         Ui.__init__(self)
+        PacketSniffer.__init__(self)
         zi_logger.log("******* Pitstop __init__ : END")

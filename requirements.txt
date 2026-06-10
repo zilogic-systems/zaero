@@ -4,3 +4,4 @@ robotframework==7.3.2
 scp==0.15.0
 playwright==1.60.0
 pytest==8.4.1
+pyserial==3.5

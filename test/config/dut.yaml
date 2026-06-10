@@ -15,6 +15,8 @@ controller:
     serial_baudrate: 115200
     bridge_iface: 'brlan0'
     bridge_ip: '10.0.0.1'
+    backhaul_capture_iface : 'eth0_virt_peer'
+    filter_1905 : 'ether proto 0x893a'
     wifi_device: 'radio'
     wifi_iface: 'default_radio{}'
     wifi_ifname: 'wifi'

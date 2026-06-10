@@ -28,3 +28,4 @@ def test_setup(initialize):
     yield initialize
     initialize.ui_close_page("controller")
     initialize.ui_close_context("controller")
+    initialize.stop_frame_capture("controller")
