@@ -70,6 +70,7 @@ class Connection(DatabaseModule,
             connection_obj = self.get_connection_module_object(connection)
             zi_logger.log(f"connection_obj: {connection_obj}")
             status = connection_obj.connect_with_device(device)
+            #return status
             if not status:
                 raise SkipExecution(
                     f"Could not established remote connection with device: {device}")

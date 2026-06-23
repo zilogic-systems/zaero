@@ -10,6 +10,10 @@ def initialize():
     current_directory = current_file.parent / "config"
     zaero_obj.initialize_database(current_directory)
     zaero_obj.connect_with_device("controller")
+    zaero_obj.connect_with_device("extender1")
+    zaero_obj.connect_with_device("extender2")
+    pcap_log_dir = zaero_obj.read_from_database("controller", 'pcap_remote_dir')
+    zaero_obj.set_sniffer_log_location("controller", pcap_log_dir)
     zaero_obj.ui_start_playwright("controller")
     time.sleep(1)
     zaero_obj.ui_open_browser("controller")

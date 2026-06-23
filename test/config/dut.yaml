@@ -2,6 +2,7 @@ controller:
     device_present: True
     platform: 'rdkb'
     connection: 'ssh'
+    ssh_tunnel: False
     wan_iface: 'erouter0'
     login_ip: '172.16.128.218'
     username: 'root'
@@ -100,18 +101,27 @@ controller:
     security_wpa2_personal: WPA2-Personal
     security_wpa3_personal: WPA3-Personal
     passphrase_1: RdkbEm@12#
-    passphrase_2: RdkbEm@12#    
+    passphrase_2: RdkbEm@12#
+    pcap_remote_dir: /home/root/pcap_logs
+    pcap_local_dir: /home/manikandan/pcap_logs
 
 extender1:
     device_present: True
     platform: 'rdkb'
-    connection: 'serial'
+    connection: 'ssh'
+    ssh_tunnel: True
+    tunnel_device: controller
+    login_ip: '10.0.0.64'
+    username: 'root'
+    password: 'user'
+    port: 22
     serial_port: '/dev/ttyUSB1'
     serial_baudrate: 115200
     bridge_iface: 'brlan0'
     bridge_ip: '10.0.0.64'
     wifi_ifname: 'wifi'
-    mld_iface: 'mld0'
+    mld_ifname: 'mld'
+    mld_iface_index: 0
     2g_bh_iface_index: 0.1
     2g_fh_iface_index: 0.2
     5g_bh_iface_index: 1.1
@@ -119,3 +129,29 @@ extender1:
     6g_bh_iface_index: 2.1
     6g_fh_iface_index: 2.2
     iperf_version: 3
+
+extender2:
+    device_present: True
+    platform: 'rdkb'
+    connection: 'ssh'
+    ssh_tunnel: True
+    tunnel_device: controller
+    login_ip: '10.0.0.223'
+    username: 'root'
+    password: 'user'
+    port: 22
+    serial_port: '/dev/ttyUSB1'
+    serial_baudrate: 115200
+    bridge_iface: 'brlan0'
+    bridge_ip: '10.0.0.64'
+    wifi_ifname: 'wifi'
+    mld_ifname: 'mld'
+    mld_iface_index: 0
+    2g_bh_iface_index: 0.1
+    2g_fh_iface_index: 0.2
+    5g_bh_iface_index: 1.1
+    5g_fh_iface_index: 1.2
+    6g_bh_iface_index: 2.1
+    6g_fh_iface_index: 2.2
+    iperf_version: 3
+    

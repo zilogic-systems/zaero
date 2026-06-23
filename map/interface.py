@@ -841,5 +841,14 @@ class Interface(DatabaseModule,
         platform = self.db_obj.read_from_database(device, 'platform')
         platform_obj = self.get_platform_module_object(platform)
         state = platform_obj.get_interface_state(device,
-                                             index)
+                                                 index)
         return state
+
+    def reboot_device(self,
+                      device: str,
+                      method = 'gui'):
+        zi_logger.print_context()
+        platform = self.db_obj.read_from_database(device, 'platform')
+        platform_obj = self.get_platform_module_object(platform)
+        platform_obj.reboot_device(device,
+                                   method)

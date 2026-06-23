@@ -65,3 +65,10 @@ class FeatureInterface(FeatureInterfaceModules):
         zi_logger.print_context()
         iface_obj = self.get_feature_interface_module_object(method)
         iface_obj.check_ssid(device, index, ssid)
+
+    def reboot_device(self,
+                      device,
+                      method = 'gui'):
+        zi_logger.print_context()
+        iface_obj = self.get_feature_interface_module_object(method)
+        iface_obj.reboot_device(device)

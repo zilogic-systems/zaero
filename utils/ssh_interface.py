@@ -53,29 +53,7 @@ class SshInterface(DatabaseModule):
         zi_logger.log(f"==== db_obj : {self.__db_obj}")
         zi_logger.log("utila.ssh_interface.__init__() : END")
 
-    def random_string(self,
-                      min_len: int = 5,
-                      max_len: int = 10) -> str:
-        """
-        Generate a random string with the length between the given range
-
-        The string will contains a combination of upper case and
-        lower case letters
-
-        ``min_len`` Minimum length of the random string and ``max_len`` Maximum
-        length of the random string
-
-        Example:
-        | Random String | 5    |  10
-        """
-        zi_logger.print_context()
-        str_len = random.randint(min_len, max_len)
-        random_string = ''.join(random.choices(string.ascii_letters, k=str_len))
-        zi_logger.log(f"Random String : {random_string}")
-        return random_string
-
-    @keyword("Create Ssh Client")
-    def create_ssh_client(self) -> object:
+    def __create_ssh_client(self) -> object:
         """
         Create a ssh client object
 
@@ -96,10 +74,11 @@ class SshInterface(DatabaseModule):
             raise RuntimeError(err) from err
 
     def __open_connection(self,
-                        host : str,
-                        alias : str = None,
-                        port: int = 22,
-                        timeout: int = 10):
+                          host : str,
+                          alias : str = None,
+                          port: int = 22,
+                          timeout: int = 10,
+                          sock = None):
         """
         Register SSH connection parameters for the given host under an alias.
         Creates the underlying Paramiko client object but does not connect yet;
@@ -112,26 +91,26 @@ class SshInterface(DatabaseModule):
         ``raise`` RuntimeError if the given alias is already registered
         """
         zi_logger.print_context()
+
         if alias is not None and alias in SshInterface.__objects:
             raise RuntimeError(f"ERROR : Given alias name {alias} is already created")
         if alias is None:
-            while True:
-                alias = self.random_string()
-                if alias not in SshInterface.__objects:
-                    break
+            raise RuntimeError(f"ERROR: Given alias is None")
+
         zi_logger.log(f"========= ALIAS IS : {alias}")
         SshInterface.__objects[alias] = {}
         SshInterface.__objects[alias]['host'] = host
         SshInterface.__objects[alias]['port'] = port
         SshInterface.__objects[alias]['timeout'] = timeout
-        SshInterface.__objects[alias]['client'] = self.create_ssh_client()
+        SshInterface.__objects[alias]['sock'] = sock
+        SshInterface.__objects[alias]['client'] = self.__create_ssh_client()
         SshInterface.__alias = alias
         zi_logger.log(f"========= ALIAS List : {SshInterface.__objects.keys()}")
 
-    @keyword("Ssh Login")
-    def login(self,
-              username: str,
-              password: str = None):
+    
+    def __login(self,
+                username: str,
+                password: str = None):
         """
         Login into the remote device
 
@@ -152,36 +131,51 @@ class SshInterface(DatabaseModule):
         host = SshInterface.__objects[SshInterface.__alias]['host']
         port = SshInterface.__objects[SshInterface.__alias]['port']
         timeout = SshInterface.__objects[SshInterface.__alias]['timeout']
+        sock = SshInterface.__objects[SshInterface.__alias].get("sock")
         try:
-            SshInterface.__objects[SshInterface.__alias]['client'].connect(hostname=host,
-                                                     port=port,
-                                                     username=username,
-                                                     password=password,
-                                                     timeout=timeout,
-                                                     banner_timeout = 5,
-                                                     auth_timeout=5)
+            if not sock:
+                SshInterface.__objects[SshInterface.__alias]['client'].connect(hostname=host,
+                                                                               port=port,
+                                                                               username=username,
+                                                                               password=password,
+                                                                               timeout=timeout,
+                                                                               banner_timeout = 60,
+                                                                               auth_timeout = 30,
+                                                                               look_for_keys = False,
+                                                                               allow_agent = False)
+            else:
+                SshInterface.__objects[SshInterface.__alias]['client'].connect(hostname=host,
+                                                                               username=username,
+                                                                               password=password,
+                                                                               timeout=timeout,
+                                                                               banner_timeout = 60,
+                                                                               sock = sock,
+                                                                               look_for_keys = False,
+                                                                               allow_agent = False)
             transport = SshInterface.__objects[SshInterface.__alias]['client'].get_transport()
             #trasnport.set_keepalive(5)
             if transport is None or not transport.is_active():
                 raise Exception("SSH transport is not active")
             transport.sock.settimeout(5)
             transport.set_keepalive(3)
-            zi_logger.log("SSH connection passed")
+            zi_logger.log(f"Succesfully login into the device - {SshInterface.__alias}")
             self.__db_obj.write_into_database(SshInterface.__alias, 
                                               "connection_status",
                                               True)
             return True
 
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not login into the host: {host}\n\
+            zi_logger.log(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
 username: {username}\npassword:{password}")
             self.__db_obj.write_into_database(SshInterface.__alias,
                                               "connection_status",
                                               False)
+            zi_logger.log(f"ERROR : {err}")
+            SshInterface.__objects.pop(SshInterface.__alias, None)
+            raise RuntimeError(f"RuntimeError: {err}") from err
             #return False
-            raise RuntimeError(f"ERROR: {err}") from err
             
-    @keyword("Is Device Alive")
+    
     def is_device_alive(self,
                         device: str):
         zi_logger.print_context()
@@ -202,36 +196,91 @@ username: {username}\npassword:{password}")
             self.__db_obj.write_into_database(device, "connection_status", False)
             return False
 
-    @keyword("Connect With Device")
+    
+    # def connect_with_device(self,
+    #                         device: str):
+    #     """
+    #     To connect with a remote device using SSH protocol
+
+    #     Internally it will using the keywords `Open Connection` and `Login`
+
+    #     ``device`` name of the remote device and it will be used as alias name
+    #     to refer the remote device further. The details of the device will be read
+    #     from config files.
+
+    #     ``raise`` Runtime error if could not connect with the given device
+    #     """
+    #     zi_logger.print_context()
+    #     try:
+    #         host = self.__db_obj.read_from_database(device, 'login_ip')
+    #         username = self.__db_obj.read_from_database(device, 'username')
+    #         password = self.__db_obj.read_from_database(device, 'password')
+    #         port = self.__db_obj.read_from_database(device, 'port')
+    #         self.__open_connection(host, alias=device, timeout=10, port=port)
+    #         self.login(username, password)
+    #         zi_logger.log(f"SSH connection successfully established with the device : {device}")
+    #         return True
+    #     except Exception as err: # pylint: disable=broad-except
+    #         zi_logger.log(f"Could not login into the device : {device}")
+    #         return False
+
     def connect_with_device(self,
                             device: str):
         """
-        To connect with a remote device using SSH protocol
+        Connect to the given device.
 
-        Internally it will using the keywords `Open Connection` and `Login`
+        If ssh_tunnel is False:
+            Direct SSH connection.
 
-        ``device`` name of the remote device and it will be used as alias name
-        to refer the remote device further. The details of the device will be read
-        from config files.
-
-        ``raise`` Runtime error if could not connect with the given device
+        If ssh_tunnel is True:
+            Connect through the configured tunnel device.
         """
+
         zi_logger.print_context()
+
         try:
             host = self.__db_obj.read_from_database(device, 'login_ip')
             username = self.__db_obj.read_from_database(device, 'username')
             password = self.__db_obj.read_from_database(device, 'password')
             port = self.__db_obj.read_from_database(device, 'port')
-            self.__open_connection(host, alias=device, timeout=10, port=port)
-            self.login(username, password)
-            zi_logger.log(f"SSH connection successfully established with the device : {device}")
+            ssh_tunnel = self.__db_obj.read_from_database(device, 'ssh_tunnel')
+            
+            if not ssh_tunnel:
+                self.__open_connection(host=host, alias= device, timeout=10, port=port)
+                self.__login(username, password)
+                zi_logger.log(f"SSH connection established with {device}")
+                return True
+
+            #SSH Tunnel
+            tunnel_device = self.__db_obj.read_from_database(device, "tunnel_device")
+            if tunnel_device not in SshInterface.__objects:
+                raise RuntimeError(f'SSH to the Tunneling Parent device "{tunnel_device}" has to be extablished first')
+            
+            tunnel_client = SshInterface.__objects[tunnel_device]["client"]
+            transport = tunnel_client.get_transport()
+            if transport is None or not transport.is_active():
+                raise RuntimeError(f"{tunnel_device} transport is not active")
+
+            channel = transport.open_channel("direct-tcpip",(host, port),("127.0.0.1", 0),timeout=5)
+            if channel is None:
+                raise RuntimeError(f"Could not create SSH tunnel to {device}")
+
+            zi_logger.log(f"Creating SSH tunnel: {tunnel_device} --> {device}")
+            self.__open_connection(host = host,
+                                   alias = device,
+                                   timeout = 10,
+                                   port = port,
+                                   sock=channel)
+            self.__login(username , password)
+            zi_logger.log(f"SSH connection established with {device}")
             return True
-        except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not login into the device : {device}")
+
+        except Exception as err:
+            zi_logger.log(f"could not login with {device}")
+            zi_logger.log(f"ERROR: {err}")
             return False
         
 
-    @keyword("Switch Connection")
     def switch_connection(self,
                           alias: str):
         """
@@ -256,7 +305,7 @@ username: {username}\npassword:{password}")
         zi_logger.log(f"utils.ssh_interface.switch_connection : device - {alias}")
         SshInterface.__alias = alias
 
-    @keyword("Execute Ssh Command")
+    
     def execute_command(self, # pylint: disable=R0913
                         command: str,
                         return_stdout: bool =True,
@@ -321,7 +370,7 @@ username: {username}\npassword:{password}")
             zi_logger.log(f"Could not execute the command - {command}")
             raise RuntimeError(err) from err
 
-    @keyword("Close All Ssh Connections")
+    
     def close_all_connections(self):
         """
         Close all the established SSH connections
@@ -335,12 +384,13 @@ username: {username}\npassword:{password}")
             for alias in aliases:
                 try:
                     SshInterface.__objects[alias]['client'].close()
+                    SshInterface.__objects.pop(alias, None)
                 except Exception as err: # pylint: disable=broad-except
                     zi_logger.log(f"ERROR: {err}")
                     zi_logger.log(f"Could not close the ssh connection for the alias : {alias}")
             SshInterface.__objects = {}
 
-    @keyword("Close Ssh Connection")
+    
     def close_connection(self,
                          alias: str):
         """
@@ -357,12 +407,13 @@ username: {username}\npassword:{password}")
         zi_logger.print_context()
         try:
             SshInterface.__objects[alias]['client'].close()
-            del SshInterface.__objects[alias]
+            #del SshInterface.__objects[alias]
+            SshInterface.__objects.pop(alias, None)
         except Exception as err: # pylint: disable=broad-except
             zi_logger.log(f"ERROR: {err}")
             zi_logger.log(f"Could not close the ssh connection for the alias : {alias}")
 
-    @keyword("Ssh Get File")
+    
     def get_file(self,
                  remote_file: str,
                  local_file: str):
@@ -393,7 +444,7 @@ username: {username}\npassword:{password}")
         finally:
             scp.close()
 
-    @keyword("Ssh Put File")
+    
     def put_file(self,
                  local_file: str,
                  remote_file: str):

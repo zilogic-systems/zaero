@@ -111,3 +111,14 @@ class FeatureInterfaceCLI(DatabaseModule,
             raise RuntimeError(f"Command execution failed : {command}")
         if output != ssid:
             raise RuntimeError(f"Expected ssid {ssid} is not matched with {output}")
+
+    def reboot_device(self,
+                      device : str):
+        zi_logger.print_context()
+        connection = self.db_obj.read_from_database(device, 'connection')
+        connection_obj = self.get_connection_module_object(connection)
+        connection_obj.switch_connection(device)
+        command = "reboot >/dev/null 2>&1 &"
+        zi_logger.log(f"COMMAND : {command}")
+        connection_obj.execute_command(command,
+                                       blocking_call = False)

@@ -1,5 +1,4 @@
 import os
-import paramiko
 import datetime
 import time
 from pathlib import Path
@@ -24,17 +23,11 @@ class PacketSniffer(DatabaseModule,
         DatabaseModule.__init__(self)
         ConnectionModules.__init__(self)
         self.db_obj = self.get_database_module_object()
-        self.log_directory = "sniffer-logs"
+        self.log_directory = "logs"
         self.log_directory_path = os.path.join('/root', self.log_directory)
         self.log_filename = None
         self.log_file_path = None
         self.pid = None
-        self.sftp = None
-        self._hostname = None
-        self._port     = None
-        self._username = None
-        self._password = None
-        self._timeout  = None
         zi_logger.log("Utils.FeaturePacketSniffer __init__ : END")
 
     def __kill_conflict_process(self,device:str):
@@ -381,73 +374,54 @@ class PacketSniffer(DatabaseModule,
         self.pid = None
         return True
 
-    def __open_sftp(self, connection_obj):
-        try:
-            if self.sftp is None:
-                self.sftp = connection_obj.open_sftp()
-                zi_logger.log("SFTP connection opened")
-        except Exception as e:
-            raise RuntimeError(f"SFTP open failed: {e}")
 
-    def __close_sftp(self):
-        if self.sftp:
-            self.sftp.close()
-            self.sftp = None
-            zi_logger.log("SFTP connection closed")
+    def delete_pcap(self, device: str, pcap_file=None):
+        connection = self.db_obj.read_from_database(device, 'connection')
+        connection_obj = self.get_connection_module_object(connection)
+        connection_obj.switch_connection(device)
+        remote_path = None
 
-    def delete_pcap(self, remote_path=None):
-        try:
-            self.__open_sftp()
-            if remote_path:
-                remote_path = os.path.join(self.log_directory_path, remote_path)
-            else:
-                raise ValueError("No remote path specified")
-            print(f"Remove path: {remote_path}")
-            self.sftp.remove(remote_path)
-        except Exception as e:
-            raise Exception(f"SFTP download failed: {e}")
-        finally:
-            self.__close_sftp()
+        if pcap_file:
+            remote_path = os.path.join(self.log_directory_path, pcap_file)
+        else:
+            raise ValueError("No pcap file name specified")
+
+        zi_logger.log(f"Remote path: {remote_path}")
+        _, error = connection_obj.execute_command(f"rm {remote_path}", return_stderr=True)
+        if error:
+            raise RuntimeError(f"Failed to delete: {remote_path}")
 
 
     def download_pcap(self,
-                  device: str,
-                  remote_path: str = None,
-                  local_path: str = None) -> str:
+              device: str,
+              remote_path: str = None,
+              local_path: str = None) -> str:
 
         zi_logger.log(f"lib.utils.packet_sniffer.({device})")
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
 
-        try:
-            self.__open_sftp(connection_obj)
-            if remote_path:
-                remote_path = os.path.join(self.log_directory_path, remote_path)
-            else:
-                remote_path = self.log_file_path
+        if remote_path:
+            remote_path = os.path.join(self.log_directory_path, remote_path)
+        else:
+            remote_path = self.log_file_path
 
-            if not remote_path:
-                raise RuntimeError("No remote path specified")
+        if not remote_path:
+            raise RuntimeError("No remote path specified")
 
-            local_path = local_path or LOCAL_LOG_PATH
-            filename = os.path.basename(remote_path)
+        local_path = local_path or LOCAL_LOG_PATH
+        filename = os.path.basename(remote_path)
 
-            if os.path.isdir(local_path):
-                local_file = os.path.join(local_path, filename)
-            else:
-                local_file = local_path
+        if os.path.isdir(local_path):
+            local_file = os.path.join(local_path, filename)
+        else:
+            local_file = local_path
 
-            zi_logger.log(f"REMOTE: {remote_path}")
-            zi_logger.log(f"LOCAL: {local_file}")
+        zi_logger.log(f"REMOTE: {remote_path}")
+        zi_logger.log(f"LOCAL: {local_file}")
 
-            self.sftp.get(remote_path, local_file)
-
-        except Exception as e:
-            raise RuntimeError(f"SFTP download failed: {e}")
-
-        finally:
-            self.__close_sftp()
+        connection_obj.get_file(remote_path, local_file)
 
         return local_file
 
