@@ -1,6 +1,6 @@
 controller:
     device_present: True
-    platform: 'rdkb'
+    platform: 'rdkbmeshzap'
     connection: 'ssh'
     ssh_tunnel: False
     wan_iface: 'erouter0'
@@ -107,7 +107,7 @@ controller:
     pcap_local_dir: /home/manikandan/pcap_logs
 
 extender1:
-    device_present: True
+    device_present: False
     platform: 'rdkb'
     connection: 'ssh'
     ssh_tunnel: True

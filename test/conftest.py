@@ -9,9 +9,12 @@ def initialize():
     current_file = Path(__file__)
     current_directory = current_file.parent / "config"
     zaero_obj.initialize_database(current_directory)
+    platform = zaero_obj.read_from_database("controller", "platform")
+    zaero_obj.configure_platform(platform)
     zaero_obj.connect_with_device("controller")
     zaero_obj.connect_with_device("extender1")
     zaero_obj.connect_with_device("extender2")
+    zaero_obj.connect_with_device("ap_wlan_client_1")
     pcap_log_dir = zaero_obj.read_from_database("controller", 'pcap_remote_dir')
     zaero_obj.set_sniffer_log_location("controller", pcap_log_dir)
     zaero_obj.ui_start_playwright("controller")

@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zaero.rdkb import Rdkb
-from zaero.linux import Linux
-from zaero.android import Android
+#from zaero.rdkb import Rdkb
+#from zaero.linux import Linux
+#from zaero.android import Android
 import zaero.utils.zi_logger as zi_logger
+import importlib
+import inspect
 
 class PlatformModules:
 
     __instance = None
-    __modules = {'rdkb' : Rdkb,
-                 'linux' : Linux,
-                 'android' : Android}
     __module_objects = {}
 
     def __new__(cls, *args, **kwargs):
@@ -38,5 +37,13 @@ class PlatformModules:
     def get_platform_module_object(self, module):
         zi_logger.print_context()
         if module not in PlatformModules.__module_objects:
-             PlatformModules.__module_objects[module] = PlatformModules.__modules[module]()
+            imp_module = importlib.import_module(f"zaero.{module}")
+            classes = inspect.getmembers(imp_module, inspect.isclass)
+            for name, cls in classes:
+                print(f"****************PM.CLASS NAME : {name}")
+                if name == module:
+                    PlatformModules.__module_objects[module] = cls()
+                    break
+            else:
+                raise Exception("More than one classes defined in the platform module : {module}")
         return PlatformModules.__module_objects[module]

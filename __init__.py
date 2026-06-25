@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from zaero.map.interface import Interface
+#from zaero.map.interface import Interface
 from zaero.map.client import Client
 from zaero.map.connection import Connection
 from zaero.map.database import Database
@@ -21,21 +21,23 @@ from zaero.map.ping import Ping
 from zaero.map.operating_system import OperatingSystem
 from zaero.map.ui import Ui
 from zaero.map.packet_sniffer import PacketSniffer
+from zaero.map.platform import platform
 
-class zaero(Interface,
-            Client,
+class zaero(Client,
             Connection,
             Database,
             Ping,
             OperatingSystem,
             Ui,
-	    PacketSniffer):
+	    PacketSniffer,
+            platform):
 
     def __init__(self):
         zi_logger.print_context()
         zi_logger.enable_log(True)
         zi_logger.log("******* zaero __init__ : START")
-        Interface.__init__(self)
+        #Interface.__init__(self)
+        platform.__init__(self)
         Client.__init__(self)
         Connection.__init__(self)
         Database.__init__(self)

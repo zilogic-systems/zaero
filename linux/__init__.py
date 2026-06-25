@@ -16,7 +16,7 @@ from zaero.linux.feature_client import FeatureClient
 from zaero.linux.feature_ping import FeaturePing
 import zaero.utils.zi_logger as zi_logger
 
-class Linux(FeatureClient,
+class linux(FeatureClient,
             FeaturePing):
     
     def __init__(self):

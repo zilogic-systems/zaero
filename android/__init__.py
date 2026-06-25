@@ -15,7 +15,7 @@
 from zaero.android.feature_client import FeatureClient
 import zaero.utils.zi_logger as zi_logger
 
-class Android(FeatureClient):
+class android(FeatureClient):
     def __init__(self):
         zi_logger.print_context()
         zi_logger.log("Adb __init__ : START")

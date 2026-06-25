@@ -13,13 +13,15 @@
 # limitations under the License.
 #
 #from zaero.utils.ui.rdkb_ui import RdkbUi
-from zaero.rdkb.feature_ui import RdkbUi
+#from zaero.rdkb.feature_ui import RdkbUi
 import zaero.utils.zi_logger as zi_logger
+import importlib
+import inspect
 
 class UiModules:
 
     __instance = None
-    __modules = {'rdkb' : RdkbUi}
+    #__modules = {'rdkb' : RdkbUi}
     __module_objects = {}
 
     def __new__(cls, *args, **kwargs):
@@ -35,5 +37,14 @@ class UiModules:
     def get_ui_module_object(self, module):
         zi_logger.print_context()
         if module not in UiModules.__module_objects:
-             UiModules.__module_objects[module] = UiModules.__modules[module]()
+            imp_module = importlib.import_module(f"{module}.feature_ui")
+            classes = inspect.getmembers(imp_module, inspect.isclass)
+            for name, cls in classes:
+                print(f"****************PM.CLASS NAME : {name}")
+                if name == 'FeatureUi':
+                    UiModules.__module_objects[module] = cls()
+                    break
+            else:
+                raise Exception("More than one classes defined in the ui module : {module}")
         return UiModules.__module_objects[module]
+
