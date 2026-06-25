@@ -72,3 +72,10 @@ class FeatureInterface(FeatureInterfaceModules):
         zi_logger.print_context()
         iface_obj = self.get_feature_interface_module_object(method)
         iface_obj.reboot_device(device)
+
+    def wifi_reset(self,
+                   device: str,
+                   method = 'gui'):
+        zi_logger.print_context()
+        iface_obj = self.get_feature_interface_module_object(method)
+        iface_obj.wifi_reset(device)

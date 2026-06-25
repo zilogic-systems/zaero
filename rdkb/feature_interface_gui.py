@@ -70,3 +70,19 @@ class FeatureInterfaceGUI(DatabaseModule,
         """
         zi_logger.print_context()
         self._create_ui_obj(device)
+
+    def wifi_reset(self,
+                 device: str):
+        """
+        To reset WiFi in the GUI Application
+        """
+        zi_logger.print_context()
+        self._create_ui_obj(device)
+        self.ui_obj.ui_navigate_to_home_page(device)
+        time.sleep(3)
+        self.ui_obj.ui_navigate_to_required_page( "System Settings")
+        time.sleep(3)
+        self.ui_obj.ui_set_dialog_handler()
+        time.sleep(3)
+        self.ui_obj.ui_click_button("#reset-btn")        
+        time.sleep(3)

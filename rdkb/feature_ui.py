@@ -161,3 +161,41 @@ class RdkbUi(DatabaseModule):
         except Exception as ERR:
             zi_logger.log(f"Failed to update profile settings")
             raise Exception(f"ERROR : {ERR}")
+
+    def ui_wifi_reset_dialog_handler(self, dialog):
+        try:
+            msg = dialog.message.lower()
+
+            zi_logger.log(f"Dialog Message:\n{msg}")
+
+            if "resetting the wi-fi configuration" in msg:
+                dialog.accept()
+                zi_logger.log("Accepted reset confirmation dialog")
+
+            elif "wi-fi configuration reset successfully" in msg:
+                dialog.accept()
+                zi_logger.log("Accepted success dialog")
+
+            else:
+                zi_logger.log(f"Unknown dialog received: {msg}")
+                dialog.accept()
+
+        except Exception as e:
+            zi_logger.log(f"Dialog handler failed: {e}")
+
+    def ui_set_dialog_handler(self):
+        try:
+            self._page.on("dialog", self.ui_wifi_reset_dialog_handler)
+        except Exception as e:
+            zi_logger.log(f"Failed to set dialog handler: {e}")
+
+    def ui_click_button(self, btn_name):
+        zi_logger.print_context()
+        try:        
+            self._page.locator(btn_name).click()
+            self._page.wait_for_timeout(10000)
+        except PlaywrightTimeoutError as e:
+            raise Exception(f"Timeout occurred while wifi reset")
+        except Exception as ERR:
+            zi_logger.log(f"Failed to reset WiFi")
+            raise Exception(f"ERROR : {ERR}")

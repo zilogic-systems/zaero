@@ -852,3 +852,12 @@ class Interface(DatabaseModule,
         platform_obj = self.get_platform_module_object(platform)
         platform_obj.reboot_device(device,
                                    method)
+        
+    def wifi_reset(self,
+                   device: str,
+                   method = 'gui'):
+        zi_logger.print_context()
+        platform = self.db_obj.read_from_database(device, 'platform')
+        platform_obj = self.get_platform_module_object(platform)
+        platform_obj.wifi_reset(device,
+                                method)

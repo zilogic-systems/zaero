@@ -4,7 +4,7 @@ controller:
     connection: 'ssh'
     ssh_tunnel: False
     wan_iface: 'erouter0'
-    login_ip: '172.16.128.218'
+    login_ip: '172.16.128.132'
     username: 'root'
     password: 'user'
     port: 22
@@ -95,6 +95,7 @@ controller:
     mld_ssid_1: rdkb_mld_ssid_1
     mld_ssid_2: rdkb_mld_ssid_2
     mld_ssid_3: rdkb_mld_ssid_3
+    default_ssid: private_ssid
     security_none: None
     security_wpa2: 
     security_wpa_personal: WPA-Personal
@@ -131,10 +132,10 @@ extender1:
     iperf_version: 3
 
 extender2:
-    device_present: True
+    device_present: False
     platform: 'rdkb'
     connection: 'ssh'
-    ssh_tunnel: True
+    ssh_tunnel: False
     tunnel_device: controller
     login_ip: '10.0.0.223'
     username: 'root'
