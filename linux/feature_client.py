@@ -281,7 +281,7 @@ class FeatureClient(BaseFeatureClient,
         awk_expr = '{if ($1 == "*") print $3; else print $2}'
         command = (
             "nmcli device wifi list | "
-            f"grep -i ' {ssid} ' | "
+            f"grep -im1 ' {ssid} ' | "
             f"awk '{awk_expr}'")
 
         output, error = connection_obj.execute_command(command,
@@ -307,10 +307,10 @@ class FeatureClient(BaseFeatureClient,
         if not status:
             raise Exception("Radio interface is not enabled. " \
             "Please use the keyword 'Enable Radio Interface <device>'.")
-        awk_expr = '{if ($1 == "*") print $2; else print $1}'
+        awk_expr = '{if ($1 == "*") print $3; else print $2}'
         command = (
             "nmcli device wifi list | "
-            f"grep -i ' {ssid} ' | "
+            f"grep -im1 ' {ssid} ' | "
             f"awk '{awk_expr}'")
         output, error = connection_obj.execute_command(command,
                                                        return_stderr=True)

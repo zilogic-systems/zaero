@@ -14,8 +14,8 @@ ap_wlan_client_1:
     platform: 'linux'
     connection: 'ssh'
     login_ip: '172.16.128.134'
-    username: 'sujitha'
-    password: 'user123'
+    username: 'root'
+    password: 'user'
     port: 22
     data_iface: 'wlp113s0'
     mac: aa:bb:cc:dd:ee:ff

@@ -4,7 +4,7 @@ controller:
     connection: 'ssh'
     ssh_tunnel: False
     wan_iface: 'erouter0'
-    login_ip: '172.16.128.132'
+    login_ip: '172.16.128.234'
     username: 'root'
     password: 'user'
     port: 22
