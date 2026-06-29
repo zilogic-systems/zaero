@@ -24,18 +24,18 @@ Make sure you have the following installed:
 git clone https://github.com/zilogic-systems/zaero.git
 ```
 
-### 2. Install zaero Package
+### 2. Generate .whl file
 
 ```
-cd zaero/packages/
-python3 -m pip install zaero-1.0.0-py3-none-any.whl
+cd zaero/
+python3 -m build
 ```
 
-### 3. Install Dependencies
+### 3. Install zaero Package
 
 ```
-cd ..
-python3 -m pip install -r requirements.txt
+cd dist/
+python3 -m pip install zaero-<version>py3-none-any.whl
 ```
 
 ### 4. Install Playwright
@@ -50,38 +50,7 @@ playwright install --with-deps
 
 ### Fields to Fill in `dut.yaml`
 
-Before running the test suite, update the login credentials of the controller in `zaero/test/config/dut.yaml` with your environment-specific values.
-
-### Update SSID Configuration in `test_ssid_config.py`
-
-The file `dut.yaml` contains predefined SSIDs:
-
-* mld_ssid_1
-* mld_ssid_2
-* mld_ssid_3
-
-The SSID mentioned in the `test_config_ssid()` test case has to be changed to other SSID before executing the test.
-
-Ex:
-
-If the ssid mentioned is,
-
-	ssid = initialize.read_from_database("controller", "mld_ssid_3")
-
-It has to be changed to `"mld_ssid_2"` or `"mld_ssid_1"`
-
-	ssid = initialize.read_from_database("controller", "mld_ssid_1")
-
----
-
-## Usage
-
-### Run Test Cases
-
-```
-cd zaero/test/
-python3 -m pytest --log-cli-level=INFO test_ssid_config.py -v -s
-```
+Before running the test_suite / test_file, update the required parameters in `zaero/config/dut.yaml` with your test-bed specific values.
 
 ---
 
