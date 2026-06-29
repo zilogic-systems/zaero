@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "zaero"
 version = "2.0.0"
-description = "Pitstop automation library"
+description = "Zaero automation library"
 requires-python = ">=3.10"
 dependencies = [
     "paramiko==5.0.0",
