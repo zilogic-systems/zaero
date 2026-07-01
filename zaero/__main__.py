@@ -15,10 +15,19 @@ def init_configs():
             dst = destination / file.name
 
             if dst.exists():
-                print(f"Skipping {file.name} (already exists)")
+                answer = input(
+                    f"{file.name} already exists. "
+                    "Do you want to overwrite it? (y/N): "
+                ).strip().lower()
+
+                if answer in ("y", "yes"):
+                    shutil.copy(file, dst)
+                    print(f"Overwritten: {dst}")
+                else:
+                    print(f"Skipped: {dst}")
             else:
                 shutil.copy(file, dst)
-                print(f"Created {dst}")
+                print(f"Created: {dst}")
 
 
 def main():
@@ -27,10 +36,12 @@ def main():
         print("    python -m zaero init_config")
         return
 
-    if sys.argv[1] == "init_config":
+    command = sys.argv[1]
+
+    if command == "init_config":
         init_configs()
     else:
-        print(f"Unknown command: {sys.argv[1]}")
+        print(f"Unknown command: {command}")
 
 
 if __name__ == "__main__":
