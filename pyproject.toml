@@ -17,6 +17,12 @@ dependencies = [
     "pyserial==3.5"
 ]
 
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+zaero = ["config/*.yaml"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["zaero*"]
