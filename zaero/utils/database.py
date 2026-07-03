@@ -56,7 +56,9 @@ class Database:
         """
         zi_logger.print_context()
         try:
-            for file_name in os.listdir(config_dir):
+            files = os.listdir(config_dir)
+            files.sort()
+            for file_name in files:
                 file_path = os.path.join(config_dir, file_name)
                 if os.path.isdir(file_path):
                     continue
@@ -69,7 +71,11 @@ class Database:
                         if file_type == 'json':
                             data = json.load(data_file)
                         if data:
-                            Database.__database.update(data)
+                            for key, value in data.items():
+                                if key in database.keys():
+                                    database[key].update(value)
+                                else:
+                                    database[key] = value
                     except Exception as err: # pylint: disable=broad-except
                         raise RuntimeError(f"ERROR reading YAML file {file_name}: {err}") from err
         except Exception as err: # pylint: disable=broad-except
