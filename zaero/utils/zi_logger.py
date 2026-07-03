@@ -16,9 +16,11 @@
 import inspect
 from pathlib import Path
 
-en_log = True
+enable_log = True
+enable_api_info = False
+
 def print_context():
-    if not en_log:
+    if not enable_api_info:
         return
     frame = inspect.currentframe().f_back
 
@@ -59,19 +61,21 @@ def print_context():
 
     print(f"FUNC : {location}({args_dict})")
 
-
-
 def log(message, status="INFO"):
-    if not en_log:
+    if not enable_log:
         return
     if status == "INFO":
-        print(message)
+        print(f"INFO : {message}")
     else:
         print_error(message)
 
 def set_log_state(status):
-    global en_log
-    en_log = status
+    global enable_log
+    enable_log = status
+
+def set_api_info(status):
+    global enable_api_info
+    enable_api_info = status
 
 _error_logs = []
 
@@ -82,8 +86,8 @@ def print_step(message):
 
 def print_success(message):
     """Log a passing assertion/step. Green in the console, PASS: prefixed."""
-    print(f"\033[92mPASS: {message}\033[0m")
-    return f'<span style="color:green; font-weight:bold;">PASS: {message}</span>'
+    print(f"\033[92m{message}\033[0m")
+    return f'<span style="color:green; font-weight:bold;">{message}</span>'
 
 def print_error(message):
     """Log a failing assertion/step. Red in the console, FAIL: prefixed.
@@ -91,9 +95,9 @@ def print_error(message):
     The message is also stored so the active test can be marked as
     failed even when print_error is used instead of raising/asserting.
     """
-    print(f"\033[91mFAIL: {message}\033[0m")
+    print(f"\033[91m{message}\033[0m")
     _error_logs.append(message)
-    return f'<span style="color:red; font-weight:bold;">FAIL: {message}</span>'
+    return f'<span style="color:red; font-weight:bold;">{message}</span>'
 
 def get_error_logs():
     """Return the failure messages logged so far for the current test."""

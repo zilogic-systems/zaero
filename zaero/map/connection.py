@@ -170,7 +170,7 @@ class Connection(DatabaseModule,
         """
         zi_logger.print_context()
         state = self.db_obj.read_from_database(device, 'device_present')
-        zi_logger.log(f"State: {state}")
+        zi_logger.log(f"{device} state: {state}")
         if state:
             connection = self.db_obj.read_device_connection(device)
             connection_obj = self.get_connection_module_object(connection)

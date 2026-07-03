@@ -27,6 +27,10 @@ from robot.api.deco import keyword
 from zaero.bridge.database_module import DatabaseModule
 import zaero.utils.zi_logger as zi_logger
 
+import logging
+
+logging.getLogger("paramiko").setLevel(logging.CRITICAL)
+
 class SshInterface(DatabaseModule):
     """A library provides keywords to establish SSH connections
     into devices from different platforms
@@ -70,7 +74,7 @@ class SshInterface(DatabaseModule):
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             return client
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log("Could not create new ssh client", "error")
+            zi_logger.print_error("Could not create new ssh client")
             raise RuntimeError(err) from err
 
     def __open_connection(self,
@@ -158,19 +162,19 @@ class SshInterface(DatabaseModule):
                 raise Exception("SSH transport is not active")
             transport.sock.settimeout(5)
             transport.set_keepalive(3)
-            zi_logger.log(f"Succesfully login into the device - {SshInterface.__alias}")
+            zi_logger.print_success(f"Succesfully login into the device - {SshInterface.__alias}")
             self.__db_obj.write_into_database(SshInterface.__alias, 
                                               "connection_status",
                                               True)
             return True
 
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
-username: {username}\npassword:{password}", "error")
+            zi_logger.print_error(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
+username: {username}\npassword:{password}")
+            zi_logger.print_error(f"{err}")
             self.__db_obj.write_into_database(SshInterface.__alias,
                                               "connection_status",
                                               False)
-            zi_logger.log(f"ERROR : {err}","error")
             SshInterface.__objects.pop(SshInterface.__alias, None)
             raise RuntimeError(f"RuntimeError: {err}") from err
             #return False
@@ -192,7 +196,7 @@ username: {username}\npassword:{password}", "error")
             self.__db_obj.write_into_database(device, "connection_status", True)
             return True
         except Exception as err:
-            zi_logger.log(f"is_device_alive ERROR is : {err}", "error")
+            zi_logger.print_error(f"is_device_alive : {err}")
             self.__db_obj.write_into_database(device, "connection_status", False)
             return False
 
@@ -248,7 +252,7 @@ username: {username}\npassword:{password}", "error")
             if not ssh_tunnel:
                 self.__open_connection(host=host, alias= device, timeout=10, port=port)
                 self.__login(username, password)
-                zi_logger.log(f"SSH connection established with {device}")
+                zi_logger.print_success(f"SSH connection established with - {device}")
                 return True
 
             #SSH Tunnel
@@ -257,27 +261,34 @@ username: {username}\npassword:{password}", "error")
                 raise RuntimeError(f'SSH to the Tunneling Parent device "{tunnel_device}" has to be extablished first')
             
             tunnel_client = SshInterface.__objects[tunnel_device]["client"]
-            transport = tunnel_client.get_transport()
-            if transport is None or not transport.is_active():
-                raise RuntimeError(f"{tunnel_device} transport is not active")
-
-            channel = transport.open_channel("direct-tcpip",(host, port),("127.0.0.1", 0),timeout=5)
+            channel = None
+            try:
+                transport = tunnel_client.get_transport()
+                if transport is None or not transport.is_active():
+                    raise RuntimeError(f"{tunnel_device} transport is not active")
+                channel = transport.open_channel("direct-tcpip",(host, port),("127.0.0.1", 0),timeout=5)
+            except Exception as err:
+                zi_logger.print_error(f"{err}")
+                raise RuntimeError(f"{err}")
             if channel is None:
                 raise RuntimeError(f"Could not create SSH tunnel to {device}")
-
-            zi_logger.log(f"Creating SSH tunnel: {tunnel_device} --> {device}")
-            self.__open_connection(host = host,
-                                   alias = device,
-                                   timeout = 10,
-                                   port = port,
-                                   sock=channel)
-            self.__login(username , password)
-            zi_logger.log(f"SSH connection established with {device}")
-            return True
-
+            
+            try:
+                zi_logger.log(f"Creating SSH tunnel: {tunnel_device} --> {device}")
+                self.__open_connection(host = host,
+                                       alias = device,
+                                       timeout = 10,
+                                       port = port,
+                                       sock=channel)
+                self.__login(username , password)
+                zi_logger.print_success(f"SSH connection established with {device}")
+                return True
+            except Exception as err:
+                zi_logger.print_error(err)
+                raise RuntimeError(err)
         except Exception as err:
-            zi_logger.log(f"could not login with {device}","error")
-            zi_logger.log(f"ERROR: {err}", "error")
+            zi_logger.print_error(f"could not login with {device}")
+            zi_logger.print_error(f"{err}")
             return False
         
 
@@ -302,7 +313,7 @@ username: {username}\npassword:{password}", "error")
         zi_logger.print_context()
         if alias not in SshInterface.__objects:
             raise RuntimeError(f"Given alias - {alias} is not present")        
-        zi_logger.log(f"utils.ssh_interface.switch_connection : device - {alias}")
+        zi_logger.log(f"switch_connection : device - {alias}")
         SshInterface.__alias = alias
 
     
@@ -339,6 +350,7 @@ username: {username}\npassword:{password}", "error")
             raise RuntimeError(f"Could not execute the command since the device {device} is not alive")
         try:
             out = None
+            zi_logger.log(f"COMMAND : {command}")
             if blocking_call:
                 _stdin, stdout, stderr = SshInterface.__objects[SshInterface.__alias]['client'].exec_command(command, timeout=10)
                 output = stdout.read().decode('utf-8').strip()
@@ -364,10 +376,10 @@ username: {username}\npassword:{password}", "error")
                 channel = SshInterface.__objects[SshInterface.__alias]['client'].get_transport().open_session()
                 channel.exec_command(command)
                 out =  None
-            zi_logger.log(f"utils.ssh_interface.execute_command - OUTPUT : {out}")
+            zi_logger.log(f"OUTPUT : {out}")
             return out
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not execute the command - {command}", "error")
+            zi_logger.print_error(f"Could not execute the command - {command}")
             raise RuntimeError(err) from err
 
     
@@ -386,8 +398,8 @@ username: {username}\npassword:{password}", "error")
                     SshInterface.__objects[alias]['client'].close()
                     SshInterface.__objects.pop(alias, None)
                 except Exception as err: # pylint: disable=broad-except
-                    zi_logger.log(f"ERROR: {err}", "error")
-                    zi_logger.log(f"Could not close the ssh connection for the alias : {alias}")
+                    zi_logger.print_error(f"{err}")
+                    zi_logger.print_error(f"Could not close the ssh connection for the alias : {alias}")
             SshInterface.__objects = {}
 
     
@@ -407,11 +419,10 @@ username: {username}\npassword:{password}", "error")
         zi_logger.print_context()
         try:
             SshInterface.__objects[alias]['client'].close()
-            #del SshInterface.__objects[alias]
             SshInterface.__objects.pop(alias, None)
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR: {err}", "error")
-            zi_logger.log(f"Could not close the ssh connection for the alias : {alias}","error")
+            zi_logger.print_error(f"{err}")
+            zi_logger.print_error(f"Could not close the ssh connection for the alias : {alias}")
 
     
     def get_file(self,
@@ -432,14 +443,14 @@ username: {username}\npassword:{password}", "error")
         zi_logger.print_context()
         scp = SCPClient(SshInterface.__objects[SshInterface.__alias]['client'].get_transport())
         if scp is None:
-            zi_logger.log("Error: SFTP Not Created", "error")
-            raise Exception("Error: SFTP Not Created")
+            zi_logger.print_error("SFTP Not Created")
+            raise Exception("SFTP Not Created")
         try:
             scp.get(remote_path=remote_file,
                     local_path=local_file,
                     recursive=False)
         except Exception as err:
-            zi_logger.log(f"Error: {err}", "error")
+            zi_logger.print_error(f"{err}")
             raise RuntimeError(f"Could not copy the file - {remote_file} \
                                from the device - {SshInterface.__alias}") from err
         finally:
@@ -470,7 +481,7 @@ username: {username}\npassword:{password}", "error")
                     remote_file,
                     recursive=False)
         except Exception as err:
-            zi_logger.log(f"Error: {err}", "error")
+            zi_logger.print_error(f"{err}")
             raise Exception(f"Could not copy the file - {local_file} into \
                             the device - {SshInterface.__alias}") from err
         finally:

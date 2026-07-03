@@ -40,7 +40,7 @@ class UiModules:
             imp_module = importlib.import_module(f"{module}.feature_ui")
             classes = inspect.getmembers(imp_module, inspect.isclass)
             for name, cls in classes:
-                print(f"****************PM.CLASS NAME : {name}")
+                #zi_logger.log(f"****************PM.CLASS NAME : {name}")
                 if name == 'FeatureUi':
                     UiModules.__module_objects[module] = cls()
                     break

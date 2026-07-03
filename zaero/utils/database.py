@@ -15,7 +15,8 @@
 """
 Author: Zilogic Systems <code@zilogic.com>
 """
-
+import random
+import string
 import json
 import os
 import yaml
@@ -62,6 +63,7 @@ class Database:
                 file_path = os.path.join(config_dir, file_name)
                 if os.path.isdir(file_path):
                     continue
+                zi_logger.log(f"============YAML file : {file_path}")
                 file_type = file_name.split('.')[-1].lower()
                 with open(file_path, 'r', encoding="utf-8") as data_file:
                     try:
@@ -72,10 +74,11 @@ class Database:
                             data = json.load(data_file)
                         if data:
                             for key, value in data.items():
-                                if key in database.keys():
-                                    database[key].update(value)
+                                if key in Database.__database.keys():
+                                    Database.__database[key].update(value)
                                 else:
-                                    database[key] = value
+                                    Database.__database[key] = value
+                            #zi_logger.log(f"DATABASE IS : {Database.__database}")
                     except Exception as err: # pylint: disable=broad-except
                         raise RuntimeError(f"ERROR reading YAML file {file_name}: {err}") from err
         except Exception as err: # pylint: disable=broad-except
@@ -184,3 +187,9 @@ the values {args}") from err
             zi_logger.log(f"ERROR: {err}", "error")
             zi_logger.log(f"Could not read connection of the device : {device}", "error")
         return connection
+
+    def get_random_ssid(self):
+        ssid_cap = "".join(random.choices(string.ascii_uppercase, k=random.randint(4, 6)))
+        ssid_low = "".join(random.choices(string.ascii_lowercase, k=random.randint(4, 6)))
+        ssid_int = "".join(random.choices(string.digits, k=random.randint(2, 4)))
+        return ssid_cap + ssid_low + ssid_int

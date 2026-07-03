@@ -40,7 +40,7 @@ class PlatformModules:
             imp_module = importlib.import_module(f"zaero.{module}")
             classes = inspect.getmembers(imp_module, inspect.isclass)
             for name, cls in classes:
-                print(f"****************PM.CLASS NAME : {name}")
+                #zi_logger.log(f"****************PM.CLASS NAME : {name}")
                 if name == module:
                     PlatformModules.__module_objects[module] = cls()
                     break

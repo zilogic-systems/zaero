@@ -88,3 +88,17 @@ class Database(DatabaseModule):
         zi_logger.print_context()
         devices = self.db_obj.get_testbed_devices()
         return devices
+
+    @keyword("Get Random Ssid")
+    def get_random_ssid(self):
+        """
+        Generate a random SSID string
+
+        - ``Returns`` a string
+
+        Example:
+        | ${ssid} | Get Random Ssid |
+        """
+        zi_logger.print_context()
+        ssid = self.db_obj.get_random_ssid()
+        return ssid
