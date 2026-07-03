@@ -69,7 +69,7 @@ class SerialInterface(DatabaseModule):
             zi_logger.log(f"Connected with device : {device}")
             return True
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not login into the device : {device}")
+            zi_logger.log(f"Could not login into the device : {device}", "error")
             return False
 
 
@@ -106,6 +106,7 @@ class SerialInterface(DatabaseModule):
             del SerialInterface.__objects[device]
             zi_logger.log(f"Closed connection : {device}")
         except Exception as err:
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(err) from err
 
     def close_all_connections(self):
@@ -117,7 +118,7 @@ class SerialInterface(DatabaseModule):
                 try:
                     SerialInterface.__objects[alias]["serial"].close()
                 except Exception as err: # pylint: disable=broad-except
-                        zi_logger.log(f"ERROR: {err}")
+                        zi_logger.log(f"ERROR: {err}", "error")
                         zi_logger.log(f"Could not close the serial connection for the alias : {alias}")
             SerialInterface.__objects = {}
             zi_logger.log("All serial connections closed")

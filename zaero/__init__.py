@@ -33,7 +33,7 @@ class zaero(Client,
 
     def __init__(self):
         zi_logger.print_context()
-        zi_logger.enable_log(True)
+        zi_logger.set_log_state(True)
         zi_logger.log("******* zaero __init__ : START")
         platform.__init__(self)
         Client.__init__(self)

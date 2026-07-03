@@ -68,8 +68,8 @@ class FeatureClient(BaseFeatureClient,
             zi_logger.log(f"Data interface: {interface}")
             zi_logger.log("Feature: Client")
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR: {err}")
-            zi_logger.log(f"Could not find out the Radio of the device : {device}")
+            zi_logger.log(f"ERROR: {err}", "error")
+            zi_logger.log(f"Could not find out the Radio of the device : {device}","error")
         return interface
     
     def get_client_ipv4(self,

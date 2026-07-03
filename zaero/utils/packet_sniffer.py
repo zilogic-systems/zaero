@@ -106,7 +106,7 @@ class PacketSniffer(DatabaseModule,
             interface = self.__get_interface(device)
 
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find interface for device: {device}")
 
         mode = self.__check_monitor_mode(device, interface)
@@ -131,7 +131,7 @@ class PacketSniffer(DatabaseModule,
         try:
             interface = self.__get_interface(device)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find out the interface of the device : {device}")
         mode = self.__check_monitor_mode(device, interface)
         if mode == "monitor":
@@ -155,7 +155,7 @@ class PacketSniffer(DatabaseModule,
         try:
             interface = self.__get_interface(device)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find out the interface of the device : {device}")
         command = f"iw dev {interface} set channel {channel} {bandwidth}"
         zi_logger.log(f"COMMAND: {command}")
@@ -181,7 +181,7 @@ class PacketSniffer(DatabaseModule,
             if not interface:
                 interface = self.__get_interface(device)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find interface for device : {device}")
         command = f"iw dev {interface} info | grep 'channel' | awk '{{print $2}}'"
         zi_logger.log(f"COMMAND: {command}")
@@ -201,7 +201,7 @@ class PacketSniffer(DatabaseModule,
         try:
             interface = self.__get_interface(device)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find interface for device : {device}")
         command = f"iw dev {interface} info | grep 'width' | awk " + "'{print $6}'"
         output, error = connection_obj.execute_command(command, return_stderr=True)
@@ -217,7 +217,7 @@ class PacketSniffer(DatabaseModule,
         try:
             interface = self.__get_interface(device)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find interface for device : {device}")
         command = ("echo $HOME")
         output, error = connection_obj.execute_command(command, return_stderr=True)
@@ -239,7 +239,7 @@ class PacketSniffer(DatabaseModule,
             self.log_directory_path = os.path.join(remote_home, self.log_directory)
 
         except Exception as err:
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not set log location for device: {device}")
 
         command = f"mkdir -p {self.log_directory_path}"
@@ -281,7 +281,7 @@ class PacketSniffer(DatabaseModule,
                 raise RuntimeError(f"Command execution failed: {command}")
 
         except Exception as err:
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not set log file for device: {device}")
 
         zi_logger.log(f"Set Log Filename: {self.log_filename}")
@@ -299,7 +299,7 @@ class PacketSniffer(DatabaseModule,
             self.remote_home = self.__get_remote_home(device)
             self.log_directory_path = os.path.join(self.remote_home, self.log_directory)
         except Exception as err:  # pylint: disable=broad-except
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Could not find remote home for device : {device}")
         command  = (f"mkdir -p {self.log_directory_path}")
         zi_logger.log(f"COMMAND: {command}")
@@ -332,7 +332,7 @@ class PacketSniffer(DatabaseModule,
             interface = interface or self.__get_interface(device)
 
         except Exception as err:
-            print(f"ERROR: {err}")
+            zi_logger.log(f"ERROR: {err}", "error")
             raise RuntimeError(f"Failed to prepare capture on device: {device}")
 
         filter_part = f' "{filter_expr}"' if filter_expr else ""

@@ -16,7 +16,10 @@
 import inspect
 from pathlib import Path
 
+en_log = True
 def print_context():
+    if not en_log:
+        return
     frame = inspect.currentframe().f_back
 
     # Function name
@@ -56,12 +59,47 @@ def print_context():
 
     print(f"FUNC : {location}({args_dict})")
 
-en_log = True
 
-def log(message):
-    if en_log:
-        print(f"LOG : {message}")
 
-def enable_log(status):
+def log(message, status="INFO"):
+    if not en_log:
+        return
+    if status == "INFO":
+        print(message)
+    else:
+        print_error(message)
+
+def set_log_state(status):
     global en_log
     en_log = status
+
+_error_logs = []
+
+def print_step(message):
+    """Log an informational step. Bold white in the console."""
+    print(f"\033[1m\033[97m{message}\033[0m")
+    return f'<span style="color:black; font-weight:bold;">{message}</span>'
+
+def print_success(message):
+    """Log a passing assertion/step. Green in the console, PASS: prefixed."""
+    print(f"\033[92mPASS: {message}\033[0m")
+    return f'<span style="color:green; font-weight:bold;">PASS: {message}</span>'
+
+def print_error(message):
+    """Log a failing assertion/step. Red in the console, FAIL: prefixed.
+
+    The message is also stored so the active test can be marked as
+    failed even when print_error is used instead of raising/asserting.
+    """
+    print(f"\033[91mFAIL: {message}\033[0m")
+    _error_logs.append(message)
+    return f'<span style="color:red; font-weight:bold;">FAIL: {message}</span>'
+
+def get_error_logs():
+    """Return the failure messages logged so far for the current test."""
+    return list(_error_logs)
+
+def clear_error_logs():
+    """Reset the failure messages. Called automatically before each test
+    by the zaero pytest plugin."""
+    _error_logs.clear()

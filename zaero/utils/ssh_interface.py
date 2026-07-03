@@ -70,7 +70,7 @@ class SshInterface(DatabaseModule):
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             return client
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log("Could not create new ssh client")
+            zi_logger.log("Could not create new ssh client", "error")
             raise RuntimeError(err) from err
 
     def __open_connection(self,
@@ -166,11 +166,11 @@ class SshInterface(DatabaseModule):
 
         except Exception as err: # pylint: disable=broad-except
             zi_logger.log(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
-username: {username}\npassword:{password}")
+username: {username}\npassword:{password}", "error")
             self.__db_obj.write_into_database(SshInterface.__alias,
                                               "connection_status",
                                               False)
-            zi_logger.log(f"ERROR : {err}")
+            zi_logger.log(f"ERROR : {err}","error")
             SshInterface.__objects.pop(SshInterface.__alias, None)
             raise RuntimeError(f"RuntimeError: {err}") from err
             #return False
@@ -192,7 +192,7 @@ username: {username}\npassword:{password}")
             self.__db_obj.write_into_database(device, "connection_status", True)
             return True
         except Exception as err:
-            zi_logger.log(f"is_device_alive ERROR is : {err}")
+            zi_logger.log(f"is_device_alive ERROR is : {err}", "error")
             self.__db_obj.write_into_database(device, "connection_status", False)
             return False
 
@@ -276,8 +276,8 @@ username: {username}\npassword:{password}")
             return True
 
         except Exception as err:
-            zi_logger.log(f"could not login with {device}")
-            zi_logger.log(f"ERROR: {err}")
+            zi_logger.log(f"could not login with {device}","error")
+            zi_logger.log(f"ERROR: {err}", "error")
             return False
         
 
@@ -367,7 +367,7 @@ username: {username}\npassword:{password}")
             zi_logger.log(f"utils.ssh_interface.execute_command - OUTPUT : {out}")
             return out
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"Could not execute the command - {command}")
+            zi_logger.log(f"Could not execute the command - {command}", "error")
             raise RuntimeError(err) from err
 
     
@@ -386,7 +386,7 @@ username: {username}\npassword:{password}")
                     SshInterface.__objects[alias]['client'].close()
                     SshInterface.__objects.pop(alias, None)
                 except Exception as err: # pylint: disable=broad-except
-                    zi_logger.log(f"ERROR: {err}")
+                    zi_logger.log(f"ERROR: {err}", "error")
                     zi_logger.log(f"Could not close the ssh connection for the alias : {alias}")
             SshInterface.__objects = {}
 
@@ -410,8 +410,8 @@ username: {username}\npassword:{password}")
             #del SshInterface.__objects[alias]
             SshInterface.__objects.pop(alias, None)
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR: {err}")
-            zi_logger.log(f"Could not close the ssh connection for the alias : {alias}")
+            zi_logger.log(f"ERROR: {err}", "error")
+            zi_logger.log(f"Could not close the ssh connection for the alias : {alias}","error")
 
     
     def get_file(self,
@@ -432,13 +432,14 @@ username: {username}\npassword:{password}")
         zi_logger.print_context()
         scp = SCPClient(SshInterface.__objects[SshInterface.__alias]['client'].get_transport())
         if scp is None:
+            zi_logger.log("Error: SFTP Not Created", "error")
             raise Exception("Error: SFTP Not Created")
         try:
             scp.get(remote_path=remote_file,
                     local_path=local_file,
                     recursive=False)
         except Exception as err:
-            zi_logger.log(f"Error: {err}")
+            zi_logger.log(f"Error: {err}", "error")
             raise RuntimeError(f"Could not copy the file - {remote_file} \
                                from the device - {SshInterface.__alias}") from err
         finally:
@@ -469,7 +470,7 @@ username: {username}\npassword:{password}")
                     remote_file,
                     recursive=False)
         except Exception as err:
-            zi_logger.log(f"Error: {err}")
+            zi_logger.log(f"Error: {err}", "error")
             raise Exception(f"Could not copy the file - {local_file} into \
                             the device - {SshInterface.__alias}") from err
         finally:

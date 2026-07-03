@@ -132,7 +132,7 @@ class AdbInterface(BaseAdbInterface):
             return response if len(response) > 1 else response[0] if response else None
 
         except Exception as err:
-            zi_logger.log(f"Could not execute the command - {full_command}")
+            zi_logger.log(f"Could not execute the command - {full_command}", "error")
             raise RuntimeError(f"Command execution failed: {err}")
 
     def get_android_version(self, device_id: str) -> int:

@@ -109,7 +109,7 @@ class Database:
                 data = Database.__database[args[0]][args[1]][args[2]][args[3]]
             return data
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR : {err}")
+            zi_logger.log(f"ERROR : {err}", "error")
             raise RuntimeError(f"Could not fetch data from database dictionary for \
 the values {args}") from err
 
@@ -125,7 +125,7 @@ the values {args}") from err
             elif arg_len == 5:
                 Database.__database[args[0]][args[1]][args[2]][args[3]] = args[4]
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR : {err}")
+            zi_logger.log(f"ERROR : {err}", "error")
             raise RuntimeError(f"Could not write data into database dictionary for \
 the values {args}") from err
     
@@ -162,8 +162,8 @@ the values {args}") from err
                 if platform not in platforms:
                     platforms.append(platform)
             except Exception as err: # pylint: disable=broad-except
-                zi_logger.log(f"ERROR: {err}")
-                zi_logger.log(f"Could not find out the platform of the device : {device}")
+                zi_logger.log(f"ERROR: {err}", "error")
+                zi_logger.log(f"Could not find out the platform of the device : {device}", "error")
         return platforms
 
     def read_device_connection(self,
@@ -175,6 +175,6 @@ the values {args}") from err
         try:
             connection = Database.__database[device]['connection']
         except Exception as err: # pylint: disable=broad-except
-            zi_logger.log(f"ERROR: {err}")
-            zi_logger.log(f"Could not read connection of the device : {device}")
+            zi_logger.log(f"ERROR: {err}", "error")
+            zi_logger.log(f"Could not read connection of the device : {device}", "error")
         return connection
