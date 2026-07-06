@@ -27,6 +27,7 @@ git clone https://github.com/zilogic-systems/zaero.git
 ### 2. Generate .whl file
 
 ```
+python3 -m pip install build
 cd zaero/
 python3 -m build
 ```
@@ -46,13 +47,7 @@ playwright install --with-deps
 
 ---
 
-## Configuration
 
-### Fields to Fill in `dut.yaml`
-
-Before running the test_suite / test_file, update the required parameters in `zaero/config/dut.yaml` with your test-bed specific values.
-
----
 
 ## Author
 
