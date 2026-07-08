@@ -61,13 +61,13 @@ def print_context():
 
     print(f"FUNC : {location}({args_dict})")
 
-def log(message, status="INFO"):
+def log(message, status="INFO", log_error= False):
     if not enable_log:
         return
     if status == "INFO":
         print(f"INFO : {message}")
     else:
-        print_error(message)
+        print_error(message, log_error)
 
 def set_log_state(status):
     global enable_log
@@ -89,14 +89,15 @@ def print_success(message):
     print(f"\033[92m{message}\033[0m")
     return f'<span style="color:green; font-weight:bold;">{message}</span>'
 
-def print_error(message):
+def print_error(message, log_error=True):
     """Log a failing assertion/step. Red in the console, FAIL: prefixed.
 
     The message is also stored so the active test can be marked as
     failed even when print_error is used instead of raising/asserting.
     """
     print(f"\033[91m{message}\033[0m")
-    _error_logs.append(message)
+    if log_error:
+        _error_logs.append(message)
     return f'<span style="color:red; font-weight:bold;">{message}</span>'
 
 def get_error_logs():
