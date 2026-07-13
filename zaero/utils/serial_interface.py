@@ -57,7 +57,7 @@ class SerialInterface(DatabaseModule):
         zi_logger.log(f"========= ALIAS List : {SerialInterface.__objects.keys()}")
 
 
-    def connect_with_device_serial(self,
+    def connect_with_device(self,
                              device: str):
 
         zi_logger.print_context()
@@ -71,14 +71,39 @@ class SerialInterface(DatabaseModule):
         except Exception as err: # pylint: disable=broad-except
             zi_logger.log(f"Could not login into the device : {device}", "error")
             return False
+    
+    def switch_connection(self,
+                          alias: str):
+        """
+        Switch the SSH connection into the specifice device
 
+        ``alias`` the reference name assigned to the ssh client object
+        of the remote device
+
+        ``raise`` a runtime error if the reference alias name is not
+        present in the database dictionary
+
+        Example:
+        | Switch To Connection | ap                        |
+        | Switch To Connection | ap_lan_client_01          |
+        | Switch To Connection | ap_wlan_client_02         |
+        | Switch To Connection | repeate_01
+        | Switch To Connection | repeater_01_lan_client_01 |
+        """
+        zi_logger.print_context()
+        if alias not in SerialInterface.__objects:
+            raise RuntimeError(f"Given alias - {alias} is not present")        
+        zi_logger.log(f"switch_connection : device - {alias}")
+        SerialInterface.__alias = alias
 
     def execute_command(self,
-                        device: str,
                         command: str,
-                        prompt: str = "#"):
+                        prompt: str = "#",
+                        return_stderr: bool = False,
+                        blocking_call:bool =True):
 
         zi_logger.print_context()
+        device = SerialInterface.__alias
         if device not in SerialInterface.__objects:
             raise RuntimeError(f"Device {device} is not connected")
         try:
@@ -91,6 +116,8 @@ class SerialInterface(DatabaseModule):
             lines = lines[1:-1]
             output = "\n".join(lines).strip()
             zi_logger.log(f"Output :\n{output}")
+            if return_stderr:
+                return output, ""  
             return output
         except Exception as err:
             raise RuntimeError(err) from err

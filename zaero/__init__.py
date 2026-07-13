@@ -15,12 +15,12 @@
 from zaero.map.client import Client
 from zaero.map.connection import Connection
 from zaero.map.database import Database
-import zaero.utils.zi_logger as zi_logger
 from zaero.map.ping import Ping
 from zaero.map.operating_system import OperatingSystem
 from zaero.map.ui import Ui
 from zaero.map.packet_sniffer import PacketSniffer
 from zaero.map.platform import platform
+import zaero.utils.zi_logger as zi_logger
 
 class zaero(Client,
             Connection,
