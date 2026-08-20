@@ -35,7 +35,7 @@ class PacketSniffer(DatabaseModule,
     ROBOT_LIBRARY_SCOPE = 'Global'
 
     def __init__(self):
-        zi_logger.log("PacketSniffer __init__ : START")
+        zi_logger.print_context()
         DatabaseModule.__init__(self)
         UtilsModules.__init__(self)
         self.db_obj = self.get_database_module_object()
@@ -44,19 +44,18 @@ class PacketSniffer(DatabaseModule,
 
 
     @keyword("Get Interface")
-    def __get_interface(self,
-                    device: str) -> str:
-        zi_logger.log(f"lib.map.packetsniffer.__get_interface({device}")
+    def get_interface(self,
+                      device: str) -> str:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj= utils_obj.__get_interface(device)
         return utils_obj
 
     @keyword("Check Monitor Mode")
     def check_monitor_mode(self,
-                        device: str,
-                        interface: str):
-
-        zi_logger.log(f"lib.map.packetsniffer.check_monitor_mode({device},{interface})")
+                           device: str,
+                           interface: str):
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         mode = utils_obj._PacketSniffer__check_monitor_mode(device, interface)
         return mode
@@ -74,112 +73,98 @@ class PacketSniffer(DatabaseModule,
         Example:
         | Set Monitor Mode | sniffer |
         """
-        zi_logger.log(f"lib.map.packetsniffer.enable_monitor_mode({device}")
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj.enable_monitor_mode(device)
 
     @keyword("Disable Monitor Mode")
     def disable_monitor_mode(self,
-                         device: str):
-        zi_logger.log(f"lib.map.packetsniffer.disable_monitor_mode({device}")
+                             device: str):
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj.disable_monitor_mode(device)
 
     @keyword("Lock Monitor Channel")
     def lock_monitor_channel(self,
-                         device: str,
-                         channel: int,
-                         bandwidth: str) -> bool:
-
-        zi_logger.log(f"lib.map.packetsniffer.lock_monitor_channel({device},{channel},{bandwidth}")
+                             device: str,
+                             channel: int,
+                             bandwidth: str) -> bool:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj.lock_monitor_channel(device, channel, bandwidth)
 
     @keyword("Set Sniffer Log Location")
     def set_sniffer_log_location(self,
-                             device: str,
-                             path: str) -> bool:
-        zi_logger.log(f"lib.map.packetsniffer.set_sniffer_log_location({device},{path}")
+                                 device: str,
+                                 path: str) -> bool:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj.set_sniffer_log_location(device, path)
 
     @keyword("Set Sniffer Log File")
     def set_sniffer_log_file(self,
-                         device: str,
-                         filename: str) -> bool:
-        zi_logger.log(f"lib.map.packetsniffer.set_sniffer_log_file({device},{filename}")
+                             device: str,
+                             filename: str) -> bool:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         utils_obj.set_sniffer_log_file(device, filename)
 
-    @keyword("Start Frame Capture")
-    def start_frame_capture(self,
-                            device: str,
-                            interface: str = None,
-                            filter_expr: str = None,
-                            timeout: int = None) -> bool:
-
-        zi_logger.log(f"lib.map.packetsniffer.start_frame_capture({device},{timeout},{filter_expr})")
+    @keyword("Start Frame Sniffing")
+    def start_frame_sniffing(self,
+                             device: str,
+                             interface: str = None,
+                             filter_expr: str = None,
+                             timeout: int = None) -> bool:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
-        result = utils_obj.start_frame_capture(device, interface, filter_expr, timeout)
+        result = utils_obj.start_frame_sniffing(device, interface, filter_expr, timeout)
         return result
 
-    @keyword("Stop Frame Capture")
-    def stop_frame_capture(self,
-                       device: str) -> bool:
-        zi_logger.log(f"lib.map.packetsniffer.stop_frame_capture({device}")
+    @keyword("Stop Frame Sniffing")
+    def stop_frame_Sniffing(self,
+                            device: str) -> bool:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
-        utils_obj.stop_frame_capture(device)
+        utils_obj.stop_frame_sniffing(device)
 
-    @keyword("Download Pcap")
-    def download_pcap(self,
-                  device: str,
-                  remote_path: str = None,
-                  local_path: str = None) -> str:
-        zi_logger.log(f"lib.map.packetsniffer.download_pcap({device},{remote_path},{local_path}")
+    @keyword("Download Sniffed Pcap")
+    def download_sniffed_pcap(self,
+                              device: str,
+                              remote_path: str = None,
+                              local_path: str = None) -> str:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
-        file = utils_obj.download_pcap(device, remote_path, local_path)
+        file = utils_obj.download_sniffed_pcap(device, remote_path, local_path)
         return file
 
-    @keyword("List Captured Pcap")
-    def list_captured_pcap(self, device : str):
-
-        zi_logger.log(f"lib.map.packetsniffer.list_captured_pcap({device}")
+    @keyword("List Sniffed Pcap")
+    def list_sniffed_pcap(self, device : str):
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
-        files = utils_obj.list_captured_pcap(device)
+        files = utils_obj.list_sniffed_pcap(device)
         return files
 
     @keyword("Check Monitor Channel")
-    def __check_monitor_channel(self,
-                            device: str,
-                            interface: str) -> str:
-        zi_logger.log(f"lib.map.packetsniffer.__check_monitor_channel({device},{interface}")
+    def check_monitor_channel(self,
+                              device: str,
+                              interface: str) -> str:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         files = utils_obj.__check_monitor_channel(device, interface)
         return files
 
     @keyword("Check Monitor Bandwidth")
-    def __check_monitor_bandwidth(self,
-                                  device : str,
-                                  interface: str) -> str:
-        zi_logger.log(f"lib.map.packetsniffer.__check_monitor_bandwidth({device},{interface}")
+    def check_monitor_bandwidth(self,
+                                device : str,
+                                interface: str) -> str:
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
         files = utils_obj.__check_monitor_bandwidth(device, interface)
         return files
 
-    @keyword("Delete Pcap")
-    def delete_pcap(self, device: str , remote_path=None):
-        zi_logger.log(f"lib.map.packetsniffer.delete_pcap({device}, {remote_path}")
+    @keyword("Delete Sniffed Pcap")
+    def delete_sniffed_pcap(self, device: str , remote_path=None):
+        zi_logger.print_context()
         utils_obj = self.get_utils_module_object('sniffer')
-        files = utils_obj.delete_pcap(device, remote_path)
-    
-    @keyword("Download Pcap")
-    def download_pcap(self,
-                  device: str,
-                  remote_path: str = None,
-                  local_path: str = None) -> str:
-    
-        zi_logger.log(f"lib.map.packetsniffer.download_pcap({device}, {remote_path}, {local_path}")
-        utils_obj = self.get_utils_module_object('sniffer')
-        files = utils_obj.download_pcap(device, remote_path, local_path)
-
+        files = utils_obj.delete_sniffed_pcap(device, remote_path)
 

@@ -19,7 +19,7 @@ class PacketSniffer(DatabaseModule,
     ROBOT_LIBRARY_SCOPE = 'Global'
 
     def __init__(self):
-        zi_logger.log("Utils.FeaturePacketSniffer __init__ : START")
+        zi_logger.print_context()
         DatabaseModule.__init__(self)
         ConnectionModules.__init__(self)
         self.db_obj = self.get_database_module_object()
@@ -31,9 +31,7 @@ class PacketSniffer(DatabaseModule,
         zi_logger.log("Utils.FeaturePacketSniffer __init__ : END")
 
     def __kill_conflict_process(self,device:str):
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -47,9 +45,7 @@ class PacketSniffer(DatabaseModule,
     def __check_monitor_mode(self,
                              device: str,
                              interface: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -69,10 +65,8 @@ class PacketSniffer(DatabaseModule,
         return mode
 
     def __get_interface(self,
-                    device: str) -> str:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+                        device: str) -> str:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -93,10 +87,8 @@ class PacketSniffer(DatabaseModule,
         return iface
 
     def enable_monitor_mode(self,
-                        device: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+                            device: str) -> bool:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -122,9 +114,8 @@ class PacketSniffer(DatabaseModule,
         return True
 
     def disable_monitor_mode(self,
-                         device: str):
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+                             device: str):
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -143,11 +134,10 @@ class PacketSniffer(DatabaseModule,
                 raise RuntimeError(f"Command execution failed: {command}")
 
     def lock_monitor_channel(self,
-                         device: str,
-                         channel: int,
-                         bandwidth: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+                             device: str,
+                             channel: int,
+                             bandwidth: str) -> bool:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -170,10 +160,9 @@ class PacketSniffer(DatabaseModule,
         return True
 
     def __check_monitor_channel(self,
-                            device: str,
-                            interface: str) -> str:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+                                device: str,
+                                interface: str) -> str:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -193,8 +182,7 @@ class PacketSniffer(DatabaseModule,
     def __check_monitor_bandwidth(self,
                                   device : str,
                                   interface: str) -> str:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -209,8 +197,7 @@ class PacketSniffer(DatabaseModule,
 
     def __get_remote_home(self,
                           device: str) -> str:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -226,9 +213,7 @@ class PacketSniffer(DatabaseModule,
     def set_sniffer_log_location(self,
                              device: str,
                              path: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -255,9 +240,7 @@ class PacketSniffer(DatabaseModule,
     def set_sniffer_log_file(self,
                              device: str,
                              filename: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -290,8 +273,7 @@ class PacketSniffer(DatabaseModule,
 
     def __create_log_directory(self,
                                device: str):
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -309,14 +291,12 @@ class PacketSniffer(DatabaseModule,
             raise RuntimeError(f"Command execution failed: {command}")
         return self.log_directory_path
 
-    def start_frame_capture(self,
-                            device: str,
-                            interface: str = None,
-                            filter_expr: str = None,
-                            timeout: int = None) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+    def start_frame_sniffing(self,
+                             device: str,
+                             interface: str = None,
+                             filter_expr: str = None,
+                             timeout: int = None) -> bool:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -351,11 +331,9 @@ class PacketSniffer(DatabaseModule,
 
         return True
 
-    def stop_frame_capture(self,
-                       device: str) -> bool:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+    def stop_frame_sniffing(self,
+                            device: str) -> bool:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -375,7 +353,10 @@ class PacketSniffer(DatabaseModule,
         return True
 
 
-    def delete_pcap(self, device: str, pcap_file=None):
+    def delete_sniffed_pcap(self,
+                            device: str,
+                            pcap_file=None):
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -392,12 +373,11 @@ class PacketSniffer(DatabaseModule,
             raise RuntimeError(f"Failed to delete: {remote_path}")
 
 
-    def download_pcap(self,
-              device: str,
-              remote_path: str = None,
-              local_path: str = None) -> str:
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
+    def download_sniffed_pcap(self,
+                              device: str,
+                              remote_path: str = None,
+                              local_path: str = None) -> str:
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
@@ -425,10 +405,9 @@ class PacketSniffer(DatabaseModule,
 
         return local_file
 
-    def list_captured_pcap(self, device: str):
-
-        zi_logger.log(f"lib.utils.packet_sniffer.({device})")
-
+    def list_sniffed_pcap(self,
+                          device: str):
+        zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)

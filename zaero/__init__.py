@@ -19,6 +19,7 @@ from zaero.map.ping import Ping
 from zaero.map.operating_system import OperatingSystem
 from zaero.map.ui import Ui
 from zaero.map.packet_sniffer import PacketSniffer
+from zaero.map.packet_capture import PacketCapture
 from zaero.map.platform import platform
 import zaero.utils.zi_logger as zi_logger
 
@@ -29,6 +30,7 @@ class zaero(Client,
             OperatingSystem,
             Ui,
 	    PacketSniffer,
+            PacketCapture,
             platform):
 
     def __init__(self):
@@ -43,4 +45,5 @@ class zaero(Client,
         OperatingSystem.__init__(self)
         Ui.__init__(self)
         PacketSniffer.__init__(self)
+        PacketCapture.__init__(self)
         zi_logger.log("******* zaero __init__ : END")
