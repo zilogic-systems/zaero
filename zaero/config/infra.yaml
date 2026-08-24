@@ -122,3 +122,11 @@ extender2_wlan_client_1:
     data_iface: 'wlp113s0'
     mac: aa:bb:cc:dd:ee:ff
     ssh_tunnel: False
+
+pdu:
+    device_present: False
+    connection: 'serial'
+    serial_port: '/dev/ttyUSB0'
+    controller: 2
+    extender1: 1
+    extender2: 3
