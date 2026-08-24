@@ -109,25 +109,26 @@ class SshInterface(DatabaseModule):
         SshInterface.__objects[alias]['sock'] = sock
         SshInterface.__objects[alias]['client'] = self.__create_ssh_client()
         SshInterface.__alias = alias
-        zi_logger.log(f"========= ALIAS List : {SshInterface.__objects.keys()}")
+        zi_logger.log(f"========= ALIAS List : {SshInterface.__objects.keys()}")   
 
-    
+            
     def __login(self,
                 username: str,
                 password: str = None):
+
         """
-        Login into the remote device
+        Login into the remote device.
 
-        This will be executed after the `Open Connection` keyword in order
-        to use the alias name assigned to ssh client object to proceed further
+        Supports three auth modes:
+        1. Password auth (password is provided)
+        2. Key/agent auth (handled by connect() defaults if you re-enable them)
+        3. 'none' auth - for devices with no password set (e.g. prplOS/dropbear)
+            Triggered automatically when password is None.
 
-        ``username`` is the username using to login into the remote
-        device and ``password`` password associated with the corresponding
-        username and ``raise`` Runtime error if could not login into the remote device
+        ``username`` is the username to login with
+        ``password`` is the password, or None to attempt passwordless (auth_none) login
 
-        Example:
-        | Ssh Login | user | user |
-        | Ssh Login | root | root |
+        ``raise`` RuntimeError if login fails via all applicable methods
         """
         zi_logger.print_context()
         SshInterface.__objects[SshInterface.__alias]['username'] = username
@@ -136,50 +137,93 @@ class SshInterface(DatabaseModule):
         port = SshInterface.__objects[SshInterface.__alias]['port']
         timeout = SshInterface.__objects[SshInterface.__alias]['timeout']
         sock = SshInterface.__objects[SshInterface.__alias].get("sock")
+
         try:
-            if not sock:
-                SshInterface.__objects[SshInterface.__alias]['client'].connect(hostname=host,
-                                                                               port=port,
-                                                                               username=username,
-                                                                               password=password,
-                                                                               timeout=timeout,
-                                                                               banner_timeout = 60,
-                                                                               auth_timeout = 30,
-                                                                               look_for_keys = False,
-                                                                               allow_agent = False)
+            if password is None:
+                # --- No password provided: attempt 'none' authentication ---
+                self.__login_with_none_auth(host, port, timeout, username, sock)
             else:
-                SshInterface.__objects[SshInterface.__alias]['client'].connect(hostname=host,
-                                                                               username=username,
-                                                                               password=password,
-                                                                               timeout=timeout,
-                                                                               banner_timeout = 60,
-                                                                               sock = sock,
-                                                                               look_for_keys = False,
-                                                                               allow_agent = False)
+                # --- Standard password authentication ---
+                if not sock:
+                    SshInterface.__objects[SshInterface.__alias]['client'].connect(
+                        hostname=host,
+                        port=port,
+                        username=username,
+                        password=password,
+                        timeout=timeout,
+                        banner_timeout=60,
+                        auth_timeout=30,
+                        look_for_keys=False,
+                        allow_agent=False)
+                else:
+                    SshInterface.__objects[SshInterface.__alias]['client'].connect(
+                        hostname=host,
+                        username=username,
+                        password=password,
+                        timeout=timeout,
+                        banner_timeout=60,
+                        sock=sock,
+                        look_for_keys=False,
+                        allow_agent=False)
+
             transport = SshInterface.__objects[SshInterface.__alias]['client'].get_transport()
-            #trasnport.set_keepalive(5)
             if transport is None or not transport.is_active():
                 raise Exception("SSH transport is not active")
             transport.sock.settimeout(5)
             transport.set_keepalive(3)
             zi_logger.print_success(f"Succesfully login into the device - {SshInterface.__alias}")
-            self.__db_obj.write_into_database(SshInterface.__alias, 
-                                              "connection_status",
-                                              True)
+            self.__db_obj.write_into_database(SshInterface.__alias,
+                                            "connection_status",
+                                            True)
             return True
 
-        except Exception as err: # pylint: disable=broad-except
+        except Exception as err:  # pylint: disable=broad-except
             zi_logger.log(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
-username: {username}\npassword:{password}", status="ERROR")
-            zi_logger.log(f"{err}" , status="ERROR")
+    username: {username}\npassword:{password}", status="ERROR")
+            zi_logger.log(f"{err}", status="ERROR")
             self.__db_obj.write_into_database(SshInterface.__alias,
-                                              "connection_status",
-                                              False)
+                                            "connection_status",
+                                            False)
             SshInterface.__objects.pop(SshInterface.__alias, None)
             raise RuntimeError(f"RuntimeError: {err}") from err
-            #return False
-            
-    
+
+
+    def __login_with_none_auth(self, host, port, timeout, username, sock=None):
+        
+        """
+        Authenticate using SSH 'none' auth - for devices with no password set
+        (e.g. prplOS/dropbear gateways that show "Authenticated ... using none").
+
+        Builds a raw paramiko.Transport, performs auth_none(), then attaches
+        it to the existing SSHClient object so the rest of the class
+        (exec_command, get_transport, etc.) works unchanged.
+
+        ``raise`` paramiko.BadAuthenticationType if the server does not allow
+                'none' auth, with the allowed methods listed in the exception
+        """
+        zi_logger.print_context()
+
+        if sock:
+            transport = paramiko.Transport(sock)
+        else:
+            transport = paramiko.Transport((host, port))
+
+        transport.start_client(timeout=timeout)
+
+        try:
+            transport.auth_none(username)
+        except paramiko.BadAuthenticationType as err:
+            zi_logger.log(
+                f"'none' auth rejected by {host}. Server allows: {err.allowed_types}",
+                status="ERROR")
+            raise
+
+        # Attach the authenticated transport to the existing SSHClient
+        client = SshInterface.__objects[SshInterface.__alias]['client']
+        client._transport = transport  # pylint: disable=protected-access
+        zi_logger.log(f"Authenticated to {host} using 'none' auth (no password required)")
+
+        
     def is_device_alive(self,
                         device: str):
         zi_logger.print_context()
@@ -201,32 +245,6 @@ username: {username}\npassword:{password}", status="ERROR")
             return False
 
     
-    # def connect_with_device(self,
-    #                         device: str):
-    #     """
-    #     To connect with a remote device using SSH protocol
-
-    #     Internally it will using the keywords `Open Connection` and `Login`
-
-    #     ``device`` name of the remote device and it will be used as alias name
-    #     to refer the remote device further. The details of the device will be read
-    #     from config files.
-
-    #     ``raise`` Runtime error if could not connect with the given device
-    #     """
-    #     zi_logger.print_context()
-    #     try:
-    #         host = self.__db_obj.read_from_database(device, 'login_ip')
-    #         username = self.__db_obj.read_from_database(device, 'username')
-    #         password = self.__db_obj.read_from_database(device, 'password')
-    #         port = self.__db_obj.read_from_database(device, 'port')
-    #         self.__open_connection(host, alias=device, timeout=10, port=port)
-    #         self.login(username, password)
-    #         zi_logger.log(f"SSH connection successfully established with the device : {device}")
-    #         return True
-    #     except Exception as err: # pylint: disable=broad-except
-    #         zi_logger.log(f"Could not login into the device : {device}")
-    #         return False
 
     def connect_with_device(self,
                             device: str):
@@ -289,7 +307,8 @@ username: {username}\npassword:{password}", status="ERROR")
         except Exception as err:
             zi_logger.log(f"could not login with {device}", status="ERROR")
             zi_logger.log(f"{err}", status="ERROR")
-            return False
+            #return False
+            raise Exception(f"{err}")
         
 
     def switch_connection(self,
