@@ -110,7 +110,9 @@ class Database:
         arg_len = len(args)
         data = None
         try:
-            if arg_len == 2:
+            if arg_len == 1:
+                data = Database.__database[args[0]]
+            elif arg_len == 2:
                 data = Database.__database[args[0]][args[1]]
             elif arg_len == 3:
                 data = Database.__database[args[0]][args[1]][args[2]]
@@ -144,9 +146,14 @@ the values {args}") from err
         Returns name of the list of devices present in config files
         """
         zi_logger.print_context()
-        #return list(Database.__database.keys())
         devices = list(Database.__database.keys())
-        device_present = [device for device in devices if Database.__database[device]['device_present']]
+        device_present = []
+        for device in devices:
+            try:
+                if Database.__database[device]['device_present']:
+                    device_present.append(device)
+            except:
+                continue
         return device_present    
 
     def get_live_devices(self):
