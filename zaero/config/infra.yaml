@@ -14,119 +14,155 @@
 #
 
 controller:
-    device_present: True
-    platform: 'rdkbmeshzap'
-    connection: 'ssh'
-    ssh_tunnel: False
-    wan_iface: 'erouter0'
-    login_ip: '172.16.128.234'
-    username: 'root'
-    password: 'user'
-    port: 22
-    serial_port: '/dev/ttyUSB0'
-    serial_baudrate: 115200
-    pcap_remote_dir: /home/root/pcap_logs
-    pcap_local_dir: /home/manikandan/pcap_logs
+    device_present: True                 # Indicates whether the controller device is present in the testbed
+    platform: 'rdkbmeshzap'              # Zaero plugin name used for the controller
+    connection: 'ssh'                    # Connection method used to access the controller
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
+    wan_iface: 'erouter0'                # WAN interface name of the controller
+    login_ip: '172.16.128.107'            # IP address used to connect to the controller
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    serial_port: '/dev/ttyUSB0'          # Serial device port used to access the controller
+    serial_baudrate: 115200              # Baud rate used for the serial connection
+    pcap_remote_dir: /home/root/pcap_logs # Directory on the controller where packet captures are stored
+    pcap_local_dir: /home/testing/pcap_logs # Local directory where packet captures are copied
 
 extender1:
-    device_present: True
-    platform: 'rdkbmeshzap'
-    connection: 'ssh'
-    ssh_tunnel: True
-    tunnel_device: controller
-    login_ip: '10.0.0.64'
-    username: 'root'
-    password: 'user'
-    port: 22
-    serial_port: '/dev/ttyUSB1'
-    serial_baudrate: 115200
+    device_present: True                 # Indicates whether extender1 is present in the testbed
+    platform: 'rdkbmeshzap'              # Zaero plugin name used for extender1
+    connection: 'ssh'                    # Connection method used to access extender1
+    ssh_tunnel: True                     # Indicates that SSH tunneling is required for extender1
+    tunnel_device: controller            # Device through which the SSH tunnel is established
+    login_ip: '10.0.0.64'                # IP address of extender1
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    serial_port: '/dev/ttyUSB1'          # Serial device port used to access extender1
+    serial_baudrate: 115200              # Baud rate used for the serial connection
 
 extender2:
-    device_present: False
-    platform: 'rdkbmeshzap'
-    connection: 'ssh'
-    ssh_tunnel: False
-    tunnel_device: controller
-    login_ip: '10.0.0.223'
-    username: 'root'
-    password: 'user'
-    port: 22
-    serial_port: '/dev/ttyUSB1'
-    serial_baudrate: 115200
+    device_present: False                # Indicates whether extender2 is present in the testbed
+    platform: 'rdkbmeshzap'              # Zaero plugin name used for extender2
+    connection: 'ssh'                    # Connection method used to access extender2
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
+    tunnel_device: controller            # Device through which the SSH tunnel can be established
+    login_ip: '10.0.0.223'               # IP address of extender2
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    serial_port: '/dev/ttyUSB1'          # Serial device port used to access extender2
+    serial_baudrate: 115200              # Baud rate used for the serial connection
     
+extender3:
+    device_present: False                # Indicates whether extender3 is present in the testbed
+    platform: 'rdkbmeshzap'              # Zaero plugin name used for extender3
+    connection: 'ssh'                    # Connection method used to access extender3
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
+    tunnel_device: controller            # Device through which the SSH tunnel can be established
+    login_ip: '10.0.0.11 '               # IP address of extender3
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    serial_port: '/dev/ttyUSB1'          # Serial device port used to access extender3
+    serial_baudrate: 115200              # Baud rate used for the serial connection
+
 controller_lan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '10.0.0.22'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'enp3s0'
-    mac: 11:22:33:44:55:66
+    device_present: False                # Indicates whether the controller LAN client is present
+    platform: 'linux'                    # Platform type of the LAN client
+    connection: 'ssh'                    # Connection method used to access the LAN client
+    login_ip: '10.0.0.22'                # IP address of the LAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'enp3s0'                 # Network interface used for LAN data traffic
+    mac: 11:22:33:44:55:66               # MAC address of the LAN client
 
 controller_wlan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '172.16.128.134'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'wlp113s0'
-    mac: aa:bb:cc:dd:ee:ff
-    ssh_tunnel: False
+    device_present: True                # Indicates whether the controller WLAN client is present
+    platform: 'linux'                    # Platform type of the WLAN client
+    connection: 'ssh'                    # Connection method used to access the WLAN client
+    login_ip: '172.16.128.134'           # IP address of the WLAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'wlp113s0'               # Wireless network interface used for WLAN traffic
+    mac: 70:1a:b8:82:86:29               # MAC address of the WLAN client
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
 
 extender1_lan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '10.0.0.22'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'enp3s0'
-    mac: 11:22:33:44:55:66
+    device_present: False                # Indicates whether extender1 LAN client is present
+    platform: 'linux'                    # Platform type of the LAN client
+    connection: 'ssh'                    # Connection method used to access the LAN client
+    login_ip: '10.0.0.22'                # IP address of the LAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'enp3s0'                 # Network interface used for LAN data traffic
+    mac: 11:22:33:44:55:66               # MAC address of the LAN client
 
 extender1_wlan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '172.16.128.134'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'wlp113s0'
-    mac: aa:bb:cc:dd:ee:ff
-    ssh_tunnel: False
+    device_present: True                # Indicates whether extender1 WLAN client is present
+    platform: 'linux'                    # Platform type of the WLAN client
+    connection: 'ssh'                    # Connection method used to access the WLAN client
+    login_ip: '172.16.128.84'           # IP address of the WLAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'wlp2s0'               # Wireless network interface used for WLAN traffic
+    mac: 58:cd:c9:19:2b:13               # MAC address of the WLAN client
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
 
 extender2_lan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '10.0.0.22'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'enp3s0'
-    mac: 11:22:33:44:55:66
+    device_present: False                # Indicates whether extender2 LAN client is present
+    platform: 'linux'                    # Platform type of the LAN client
+    connection: 'ssh'                    # Connection method used to access the LAN client
+    login_ip: '10.0.0.22'                # IP address of the LAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'enp3s0'                 # Network interface used for LAN data traffic
+    mac: 11:22:33:44:55:66               # MAC address of the LAN client
 
 extender2_wlan_client_1:
-    device_present: False
-    platform: 'linux'
-    connection: 'ssh'
-    login_ip: '172.16.128.134'
-    username: 'root'
-    password: 'user'
-    port: 22
-    data_iface: 'wlp113s0'
-    mac: aa:bb:cc:dd:ee:ff
-    ssh_tunnel: False
+    device_present: False                # Indicates whether extender2 WLAN client is present
+    platform: 'linux'                    # Platform type of the WLAN client
+    connection: 'ssh'                    # Connection method used to access the WLAN client
+    login_ip: '172.16.128.134'           # IP address of the WLAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'wlp113s0'               # Wireless network interface used for WLAN traffic
+    mac: aa:bb:cc:dd:ee:ff               # MAC address of the WLAN client
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
+
+extender3_lan_client_1:
+    device_present: False                # Indicates whether extender3 LAN client is present
+    platform: 'linux'                    # Platform type of the LAN client
+    connection: 'ssh'                    # Connection method used to access the LAN client
+    login_ip: '10.0.0.22'                # IP address of the LAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'enp3s0'                 # Network interface used for LAN data traffic
+    mac: 11:22:33:44:55:66               # MAC address of the LAN client
+
+extender3_wlan_client_1:
+    device_present: False                # Indicates whether extender3 WLAN client is present
+    platform: 'linux'                    # Platform type of the WLAN client
+    connection: 'ssh'                    # Connection method used to access the WLAN client
+    login_ip: '172.16.128.133'           # IP address of the WLAN client
+    username: 'root'                     # SSH login username
+    password: 'user'                     # SSH login password
+    port: 22                             # SSH port number
+    data_iface: 'wlp113s0'               # Wireless network interface used for WLAN traffic
+    mac: aa:bb:cc:dd:ee:ff               # MAC address of the WLAN client
+    ssh_tunnel: False                    # Indicates whether SSH tunneling is required
 
 pdu:
-    device_present: False
-    connection: 'serial'
-    serial_port: '/dev/ttyUSB0'
-    controller: 2
-    extender1: 1
-    extender2: 3
+    device_present: False            # Indicates whether the PDU device is available
+    serial_port: '/dev/ttyUSB0'      # Serial port used to communicate with the PDU
+    controller: 2                    # PDU outlet number assigned to the controller
+    extender1: 1                     # PDU outlet number assigned to extender1
+    extender2: 3                     # PDU outlet number assigned to extender2
+    extender3: 4                     # PDU outlet number assigned to extender3
