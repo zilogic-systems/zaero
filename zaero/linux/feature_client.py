@@ -327,38 +327,54 @@ class FeatureClient(BaseFeatureClient,
                                device: str,
                                ssid: str,
                                password: str = None,
-                               hidden:str = False):
+                               bssid: str = None,
+                               hidden: bool = False):
         """
         Connect the client to a specified WiFi SSID.
+        Optionally connect to a specific BSSID.
         """
         zi_logger.print_context()
+
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         connection_obj.switch_connection(device)
+
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
 
         if conn_type != "wifi":
-            raise ValueError(f"Interface Error: {interface} " \
-                             "is not a WiFi interface")
-
+            raise ValueError(f"Interface Error: {interface} is not a WiFi interface")
+        # Build nmcli command
         cmd_parts = [
             "nmcli device wifi connect",
             f'"{ssid}"',
-            f"password '{password}'" if password is not None else "",
-            f"ifname {interface}",
-            "hidden yes" if hidden else ""
-            ]
-        filter_cmd_parts = list(filter(None, cmd_parts))
-        command = " ".join(filter_cmd_parts)
+        ]
+
+        if password is not None:
+            cmd_parts.append(f"password '{password}'")
+
+        if bssid:
+            cmd_parts.append(f"bssid {bssid.upper()}")
+
+        cmd_parts.append(f"ifname {interface}")
+
+        if hidden:
+            cmd_parts.append("hidden yes")
+
+        command = " ".join(cmd_parts)
+
+        zi_logger.log(f"Connecting client using command: {command}")
 
         error = connection_obj.execute_command(command,
                                                return_stdout=False,
                                                return_stderr=True)
+
         if error:
-            raise Exception(f"Command execution failed: {command}" \
-                            f"Error: {error}")
+            raise Exception(
+                f"Command execution failed: {command}\n"
+                f"Error: {error}"
+            )
 
     
     def get_client_connected_ssid(self,

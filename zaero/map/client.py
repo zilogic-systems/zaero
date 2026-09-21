@@ -250,6 +250,7 @@ class Client(DatabaseModule,
                                device: str,
                                ssid: str,
                                password: str = None,
+                               bssid: str = None,
                                hidden:str = False):
         """
         Connect a client device to the specified WiFi SSID.
@@ -280,6 +281,7 @@ class Client(DatabaseModule,
         platform_obj.connect_client_to_ssid(device,
                                             ssid,
                                             password,
+                                            bssid,
                                             hidden)
 
     @keyword("Get Client Connected Ssid")
