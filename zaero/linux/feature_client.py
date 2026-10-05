@@ -375,6 +375,20 @@ class FeatureClient(BaseFeatureClient,
                 f"Command execution failed: {command}\n"
                 f"Error: {error}"
             )
+        if bssid:
+            zi_logger.log(f"Locking connection to BSSID: {bssid.upper()}")
+            command = (f"nmcli connection modify '{ssid}' 802-11-wireless.bssid {bssid.upper()}")
+            error = connection_obj.execute_command(command, return_stdout=False,return_stderr=True)
+            if error:
+                raise RuntimeError(f"Command execution failed: {command}\nError: {error}")
+            command = f"nmcli connection down '{ssid}'"
+            error = connection_obj.execute_command(command,return_stdout=False,return_stderr=True)
+            if error:
+                raise RuntimeError(f"Command execution failed: {command}\nError: {error}")
+            command = f"nmcli connection up '{ssid}'"
+            error = connection_obj.execute_command(command,return_stdout=False,return_stderr=True)
+            if error:
+                raise RuntimeError(f"Command execution failed: {command}\n Error: {error}")
 
     
     def get_client_connected_ssid(self,
