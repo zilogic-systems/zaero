@@ -51,9 +51,8 @@ class FeaturePing(BaseFeaturePing,
         interface = self.db_obj.read_from_database(device, 'data_iface')
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         command = f"ping -4 -I {interface} -c {count} {dst_ip}"
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -78,9 +77,8 @@ class FeaturePing(BaseFeaturePing,
         interface = self.db_obj.read_from_database(device, 'data_iface')
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         command = f"ping -6 -I {interface} -c {count} {dst_ip}"
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:

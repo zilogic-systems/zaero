@@ -50,8 +50,7 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
-        output, error = connection_obj.execute_command("uname",
+        output, error = connection_obj.execute_command(device, "uname",
                                                        return_stderr = True)
         if error != '':
             raise Exception(f"Command execution failed : uname")
@@ -82,9 +81,8 @@ class FeatureClient(BaseFeatureClient,
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         zi_logger.log(connection_obj)
-        connection_obj.switch_connection(device)
         command = f"/sbin/ifconfig {interface} | grep 'inet ' | cut -d' ' -f10"
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         zi_logger.log(f"output: {output}, error: {error}")
@@ -102,7 +100,7 @@ class FeatureClient(BaseFeatureClient,
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         command = f"/usr/sbin/ip link show {interface}"
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
         if error:
@@ -129,7 +127,7 @@ class FeatureClient(BaseFeatureClient,
             f"awk -F': +' '/GENERAL.TYPE/ {awk_expr}'")
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        output = connection_obj.execute_command(command,
+        output = connection_obj.execute_command(device, command,
                                                 return_stdout=True)
         if not output:
             raise Exception(f"Command exection failed: {command}")
@@ -149,7 +147,7 @@ class FeatureClient(BaseFeatureClient,
         
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
 
@@ -170,13 +168,12 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         if state == 1:
             command = "nmcli radio wifi on"
         else:
             command = "nmcli radio wifi off"
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
         if error:
@@ -192,8 +189,7 @@ class FeatureClient(BaseFeatureClient,
         command = "nmcli radio wifi"
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -216,7 +212,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         interface = self.db_obj.read_from_database(device, 'data_iface')
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -230,7 +225,7 @@ class FeatureClient(BaseFeatureClient,
         else:
             command = f"ifconfig {interface} down"
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
         if error:
@@ -245,7 +240,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         interface = self.db_obj.read_from_database(device, 'data_iface')
         conn_type = self.__get_interface_type(device,
@@ -284,7 +278,7 @@ class FeatureClient(BaseFeatureClient,
             f"grep -im1 ' {ssid} ' | "
             f"awk '{awk_expr}'")
 
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stderr=True)
         if error:
             raise Exception(f"Command execution failed : {command}")
@@ -301,7 +295,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         status = self.get_client_radio_state(device)
         if not status:
@@ -312,7 +305,7 @@ class FeatureClient(BaseFeatureClient,
             "nmcli device wifi list | "
             f"grep -im1 ' {ssid} ' | "
             f"awk '{awk_expr}'")
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stderr=True)
         if error:
             raise Exception(f"Command execution failed : {command}")
@@ -337,7 +330,6 @@ class FeatureClient(BaseFeatureClient,
 
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
@@ -366,7 +358,7 @@ class FeatureClient(BaseFeatureClient,
 
         zi_logger.log(f"Connecting client using command: {command}")
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
 
@@ -378,15 +370,15 @@ class FeatureClient(BaseFeatureClient,
         if bssid:
             zi_logger.log(f"Locking connection to BSSID: {bssid.upper()}")
             command = (f"nmcli connection modify '{ssid}' 802-11-wireless.bssid {bssid.upper()}")
-            error = connection_obj.execute_command(command, return_stdout=False,return_stderr=True)
+            error = connection_obj.execute_command(device, command, return_stdout=False,return_stderr=True)
             if error:
                 raise RuntimeError(f"Command execution failed: {command}\nError: {error}")
             command = f"nmcli connection down '{ssid}'"
-            error = connection_obj.execute_command(command,return_stdout=False,return_stderr=True)
+            error = connection_obj.execute_command(device, command,return_stdout=False,return_stderr=True)
             if error:
                 raise RuntimeError(f"Command execution failed: {command}\nError: {error}")
             command = f"nmcli connection up '{ssid}'"
-            error = connection_obj.execute_command(command,return_stdout=False,return_stderr=True)
+            error = connection_obj.execute_command(device, command,return_stdout=False,return_stderr=True)
             if error:
                 raise RuntimeError(f"Command execution failed: {command}\n Error: {error}")
 
@@ -399,7 +391,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
         conn_type = self.__get_interface_type(device, interface).lower()
 
@@ -409,7 +400,7 @@ class FeatureClient(BaseFeatureClient,
 
         awk_expr = '{print$2}'
         command = f"iw dev {interface} link | grep 'SSID' | awk '{awk_expr}'"
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -427,7 +418,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -439,7 +429,7 @@ class FeatureClient(BaseFeatureClient,
         awk_expr = '{print$2; exit}'
         command = (f"iw dev {interface} info | "
                    f"grep -i 'channel' | awk '{awk_expr}'")
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -457,7 +447,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -467,11 +456,11 @@ class FeatureClient(BaseFeatureClient,
 
         command =  f"nmcli connection show | grep '{connection_name}'"
 
-        output = connection_obj.execute_command(command,
+        output = connection_obj.execute_command(device, command,
                                                 return_stdout=True)
         if output:
             command = f"nmcli connection delete '{connection_name}'"
-            error = connection_obj.execute_command(command,
+            error = connection_obj.execute_command(device, command,
                                                    return_stdout=False,
                                                    return_stderr=True)
             if error:
@@ -486,7 +475,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -497,7 +485,7 @@ class FeatureClient(BaseFeatureClient,
         list_uuid_cmd = ("nmcli -f UUID,TYPE,DEVICE connection show |"
                          f"grep '{conn_type}' | awk '{{print $1}}'")
         
-        uuids = connection_obj.execute_command(list_uuid_cmd,
+        uuids = connection_obj.execute_command(device, list_uuid_cmd,
                                                return_stdout=True)
 
         if not uuids:
@@ -506,7 +494,7 @@ class FeatureClient(BaseFeatureClient,
 
         for uuid in uuids.strip().splitlines():
             delete_cmd = f"nmcli connection delete uuid {uuid.strip()}"
-            error = connection_obj.execute_command(delete_cmd,
+            error = connection_obj.execute_command(device, delete_cmd,
                                                    return_stdout=False,
                                                    return_stderr=True)
             if error:
@@ -522,7 +510,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -536,7 +523,7 @@ class FeatureClient(BaseFeatureClient,
             f"iw dev {interface} info | "
             f"awk -F'width: ' '/width/ {awk_expr}'")
 
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -554,7 +541,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -567,7 +553,7 @@ class FeatureClient(BaseFeatureClient,
             f"wpa_cli -i {interface} status | "
             "grep 'key_mgmt' | cut -d= -f2"
         )
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -585,7 +571,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -597,7 +582,7 @@ class FeatureClient(BaseFeatureClient,
         command = (
             f"iw dev {interface} link | grep 'freq' | "
             "cut -d: -f2 | tr -d ' '")
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -615,7 +600,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -627,7 +611,7 @@ class FeatureClient(BaseFeatureClient,
         command = (
             f"iw dev {interface} link | grep 'signal' | "
             "cut -d: -f2 | tr -d ' '")
-        output, error = connection_obj.execute_command(command,
+        output, error = connection_obj.execute_command(device, command,
                                                        return_stdout=True,
                                                        return_stderr=True)
         if error:
@@ -644,7 +628,6 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         interface = self.db_obj.read_from_database(device, 'data_iface')
 
         conn_type = self.__get_interface_type(device, interface).lower()
@@ -654,14 +637,14 @@ class FeatureClient(BaseFeatureClient,
                              "is not a WiFi interface")
 
         command = f"nmcli device disconnect {interface}"
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
         if error:
             raise ValueError(f"Error: Device '{interface}' is not active.")
         
         command = f"nmcli device status | grep ' {conn_type} ' | awk '{{print $3}}'"
-        output = connection_obj.execute_command(command,
+        output = connection_obj.execute_command(device, command,
                                                 return_stdout=True,
                                                 return_stderr=False)
         zi_logger.log(output)

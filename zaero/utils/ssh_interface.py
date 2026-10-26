@@ -40,7 +40,6 @@ class SshInterface(DatabaseModule):
     ROBOT_LIBRARY_SCOPE = 'Global'
 
     __objects = {}
-    __alias = None
     __instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -108,11 +107,11 @@ class SshInterface(DatabaseModule):
         SshInterface.__objects[alias]['timeout'] = timeout
         SshInterface.__objects[alias]['sock'] = sock
         SshInterface.__objects[alias]['client'] = self.__create_ssh_client()
-        SshInterface.__alias = alias
         zi_logger.log(f"========= ALIAS List : {SshInterface.__objects.keys()}")   
 
             
     def __login(self,
+                alias: str,
                 username: str,
                 password: str = None):
 
@@ -125,27 +124,28 @@ class SshInterface(DatabaseModule):
         3. 'none' auth - for devices with no password set (e.g. prplOS/dropbear)
             Triggered automatically when password is None.
 
+        ``alias`` is the reference name of the connection to login
         ``username`` is the username to login with
         ``password`` is the password, or None to attempt passwordless (auth_none) login
 
         ``raise`` RuntimeError if login fails via all applicable methods
         """
         zi_logger.print_context()
-        SshInterface.__objects[SshInterface.__alias]['username'] = username
-        SshInterface.__objects[SshInterface.__alias]['password'] = password
-        host = SshInterface.__objects[SshInterface.__alias]['host']
-        port = SshInterface.__objects[SshInterface.__alias]['port']
-        timeout = SshInterface.__objects[SshInterface.__alias]['timeout']
-        sock = SshInterface.__objects[SshInterface.__alias].get("sock")
+        SshInterface.__objects[alias]['username'] = username
+        SshInterface.__objects[alias]['password'] = password
+        host = SshInterface.__objects[alias]['host']
+        port = SshInterface.__objects[alias]['port']
+        timeout = SshInterface.__objects[alias]['timeout']
+        sock = SshInterface.__objects[alias].get("sock")
 
         try:
             if password is None:
                 # --- No password provided: attempt 'none' authentication ---
-                self.__login_with_none_auth(host, port, timeout, username, sock)
+                self.__login_with_none_auth(alias, host, port, timeout, username, sock)
             else:
                 # --- Standard password authentication ---
                 if not sock:
-                    SshInterface.__objects[SshInterface.__alias]['client'].connect(
+                    SshInterface.__objects[alias]['client'].connect(
                         hostname=host,
                         port=port,
                         username=username,
@@ -156,7 +156,7 @@ class SshInterface(DatabaseModule):
                         look_for_keys=False,
                         allow_agent=False)
                 else:
-                    SshInterface.__objects[SshInterface.__alias]['client'].connect(
+                    SshInterface.__objects[alias]['client'].connect(
                         hostname=host,
                         username=username,
                         password=password,
@@ -166,29 +166,29 @@ class SshInterface(DatabaseModule):
                         look_for_keys=False,
                         allow_agent=False)
 
-            transport = SshInterface.__objects[SshInterface.__alias]['client'].get_transport()
+            transport = SshInterface.__objects[alias]['client'].get_transport()
             if transport is None or not transport.is_active():
                 raise Exception("SSH transport is not active")
             transport.sock.settimeout(5)
             transport.set_keepalive(3)
-            zi_logger.print_success(f"Succesfully login into the device - {SshInterface.__alias}")
-            self.__db_obj.write_into_database(SshInterface.__alias,
+            zi_logger.print_success(f"Succesfully login into the device - {alias}")
+            self.__db_obj.write_into_database(alias,
                                             "connection_status",
                                             True)
             return True
 
         except Exception as err:  # pylint: disable=broad-except
-            zi_logger.log(f"Could not login into the device - {SshInterface.__alias} \nhost: {host}\n\
+            zi_logger.log(f"Could not login into the device - {alias} \nhost: {host}\n\
     username: {username}\npassword:{password}", status="ERROR")
             zi_logger.log(f"{err}", status="ERROR")
-            self.__db_obj.write_into_database(SshInterface.__alias,
+            self.__db_obj.write_into_database(alias,
                                             "connection_status",
                                             False)
-            SshInterface.__objects.pop(SshInterface.__alias, None)
+            SshInterface.__objects.pop(alias, None)
             raise RuntimeError(f"RuntimeError: {err}") from err
 
 
-    def __login_with_none_auth(self, host, port, timeout, username, sock=None):
+    def __login_with_none_auth(self, alias, host, port, timeout, username, sock=None):
         
         """
         Authenticate using SSH 'none' auth - for devices with no password set
@@ -219,13 +219,23 @@ class SshInterface(DatabaseModule):
             raise
 
         # Attach the authenticated transport to the existing SSHClient
-        client = SshInterface.__objects[SshInterface.__alias]['client']
+        client = SshInterface.__objects[alias]['client']
         client._transport = transport  # pylint: disable=protected-access
         zi_logger.log(f"Authenticated to {host} using 'none' auth (no password required)")
 
         
     def is_device_alive(self,
                         device: str):
+        """
+        Check whether the SSH connection to the device is still active, and
+        store the result as ``connection_status`` in the database.
+
+        ``device`` is the reference name of the remote device
+
+        ``returns`` True if the device answers a test command, else False
+
+        ``raise`` RuntimeError if no connection is registered for the device
+        """
         zi_logger.print_context()
         if device not in SshInterface.__objects:
             raise RuntimeError(f"Given alias - {device} is not present")
@@ -269,7 +279,7 @@ class SshInterface(DatabaseModule):
             
             if not ssh_tunnel:
                 self.__open_connection(host=host, alias= device, timeout=10, port=port)
-                self.__login(username, password)
+                self.__login(device, username, password)
                 zi_logger.print_success(f"SSH connection established with - {device}")
                 return True
 
@@ -298,7 +308,7 @@ class SshInterface(DatabaseModule):
                                        timeout = 10,
                                        port = port,
                                        sock=channel)
-                self.__login(username , password)
+                self.__login(device, username, password)
                 zi_logger.print_success(f"SSH connection established with {device}")
                 return True
             except Exception as err:
@@ -311,32 +321,8 @@ class SshInterface(DatabaseModule):
             raise Exception(f"{err}")
         
 
-    def switch_connection(self,
-                          alias: str):
-        """
-        Switch the SSH connection into the specifice device
-
-        ``alias`` the reference name assigned to the ssh client object
-        of the remote device
-
-        ``raise`` a runtime error if the reference alias name is not
-        present in the database dictionary
-
-        Example:
-        | Switch To Connection | ap                        |
-        | Switch To Connection | ap_lan_client_01          |
-        | Switch To Connection | ap_wlan_client_02         |
-        | Switch To Connection | repeate_01
-        | Switch To Connection | repeater_01_lan_client_01 |
-        """
-        zi_logger.print_context()
-        if alias not in SshInterface.__objects:
-            raise RuntimeError(f"Given alias - {alias} is not present")        
-        zi_logger.log(f"switch_connection : device - {alias}")
-        SshInterface.__alias = alias
-
-    
     def execute_command(self, # pylint: disable=R0913
+                        device: str,
                         command: str,
                         return_stdout: bool =True,
                         return_stderr: bool =False,
@@ -345,9 +331,8 @@ class SshInterface(DatabaseModule):
         """
         Execute the given command in the remote device
 
-        we may use ``Swtich Connection`` keyword to select the remote device
-
-        ``command`` is the command to be executed in the remote device
+        ``device`` is the reference name of the remote device
+        and ``command`` is the command to be executed in the remote device
         and ``return_stdout`` is to return the stdout of the command executed
         and ``return_stderr`` is to return the stderr of the command executed
         and ``return_rc`` is to return the return code of the command executed
@@ -360,18 +345,17 @@ class SshInterface(DatabaseModule):
         ``raise`` a runtime error if could not execute the command in remote device
 
         Example:
-        | Execute Ssh Command | ls -l /                        | return_stderr=True |
-        | Execute Ssh Command | uci set wireless.0.channel=11  | return_rc = True   |
+        | Execute Ssh Command | ap | ls -l /                        | return_stderr=True |
+        | Execute Ssh Command | ap | uci set wireless.0.channel=11  | return_rc = True   |
         """
         zi_logger.print_context()
-        device = SshInterface.__alias
         if not self.is_device_alive(device):
             raise RuntimeError(f"Could not execute the command since the device {device} is not alive")
         try:
             out = None
             zi_logger.log(f"COMMAND : {command}")
             if blocking_call:
-                _stdin, stdout, stderr = SshInterface.__objects[SshInterface.__alias]['client'].exec_command(command, timeout=10)
+                _stdin, stdout, stderr = SshInterface.__objects[device]['client'].exec_command(command, timeout=10)
                 output = stdout.read().decode('utf-8').strip()
                 error = stderr.read().decode('utf-8').strip()
                 return_code = stdout.channel.recv_exit_status()
@@ -392,7 +376,7 @@ class SshInterface(DatabaseModule):
                 elif not return_stdout and return_stderr and return_rc:
                     out =  error, return_code
             if not blocking_call:
-                channel = SshInterface.__objects[SshInterface.__alias]['client'].get_transport().open_session()
+                channel = SshInterface.__objects[device]['client'].get_transport().open_session()
                 channel.exec_command(command)
                 out =  None
             zi_logger.log(f"OUTPUT : {out}")
@@ -445,22 +429,24 @@ class SshInterface(DatabaseModule):
 
     
     def get_file(self,
+                 device: str,
                  remote_file: str,
                  local_file: str):
         """
         Retrieve a file from the remote machine.
 
-        ``remote_file`` location of the source file in the remote machine
+        ``device`` is the reference name of the remote device
+        and ``remote_file`` location of the source file in the remote machine
         and ``local_file`` destination path in the local machine
 
         ``raise`` runtime error if SFTP is not created or not
                   able to copy the file
 
         Example:
-        | Ssh Get File | /home/user/output.xml | /home/user/local/output
+        | Ssh Get File | ap | /home/user/output.xml | /home/user/local/output
         """
         zi_logger.print_context()
-        scp = SCPClient(SshInterface.__objects[SshInterface.__alias]['client'].get_transport())
+        scp = SCPClient(SshInterface.__objects[device]['client'].get_transport())
         if scp is None:
             zi_logger.log("SFTP Not Created", status="ERROR")
             raise Exception("SFTP Not Created")
@@ -471,28 +457,30 @@ class SshInterface(DatabaseModule):
         except Exception as err:
             zi_logger.log(f"{err}", status="ERROR")
             raise RuntimeError(f"Could not copy the file - {remote_file} \
-                               from the device - {SshInterface.__alias}") from err
+                               from the device - {device}") from err
         finally:
             scp.close()
 
     
     def put_file(self,
+                 device: str,
                  local_file: str,
                  remote_file: str):
         """
         Transfer a file from the local machine to the remote machine.
 
-        ``local_file`` location of the source file in the local machine
+        ``device`` is the reference name of the remote device
+        and ``local_file`` location of the source file in the local machine
         and ``remote_file`` destination file path in the remote machine
 
         ``raise`` runtime error if SFTP is not created or
                   not able to copy the file
 
         Example:
-        | Ssh Put File | /home/user/top.sh | /home/user/remote/scripts
+        | Ssh Put File | ap | /home/user/top.sh | /home/user/remote/scripts
         """
         zi_logger.print_context()
-        scp = SCPClient(SshInterface.__objects[SshInterface.__alias]['client'].get_transport())
+        scp = SCPClient(SshInterface.__objects[device]['client'].get_transport())
         if scp is None:
             raise Exception("Error: SFTP Not Created")
         try:
@@ -502,7 +490,7 @@ class SshInterface(DatabaseModule):
         except Exception as err:
             zi_logger.log(f"{err}", status="ERROR")
             raise Exception(f"Could not copy the file - {local_file} into \
-                            the device - {SshInterface.__alias}") from err
+                            the device - {device}") from err
         finally:
             scp.close()
         

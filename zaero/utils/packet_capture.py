@@ -1,3 +1,20 @@
+# Copyright 2026 Zilogic Systems
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""
+Author: Zilogic Systems <code@zilogic.com>
+"""
 import os
 from pathlib import Path
 from zaero.bridge.database_module import DatabaseModule
@@ -6,6 +23,11 @@ import zaero.utils.zi_logger as zi_logger
 
 class PacketCapture(DatabaseModule,
                     ConnectionModules):    
+    """
+    A library to capture packets with tcpdump on remote devices and fetch
+    the capture files. Files are stored in the ``pcap_remote_dir`` of the
+    device and copied into its ``pcap_local_dir``.
+    """
 
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -26,16 +48,28 @@ class PacketCapture(DatabaseModule,
                             filter_expr: str,
                             filename: str,
                             timeout: int):
+        """
+        Start a tcpdump capture in the background on the device.
+
+        ``device`` is the reference name of the device
+        and ``interface`` is the interface to capture on
+        and ``filter_expr`` is the tcpdump filter expression, or None
+        and ``filename`` is the name of the capture file
+        and ``timeout`` if given, rotates the capture file every ``timeout`` seconds
+
+        ``returns`` True if the capture is started
+
+        ``raise`` RuntimeError if a command fails
+        """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         remote_log_directory = self.db_obj.read_from_database(device, 'pcap_remote_dir')
         command  = (f"mkdir -p {remote_log_directory}")
         zi_logger.log(f"COMMAND: {command}")
 
-        _, error = connection_obj.execute_command(command, return_stderr=True)
+        _, error = connection_obj.execute_command(device, command, return_stderr=True)
         if error:
             raise RuntimeError(f"Command execution failed: {command}")
 
@@ -51,7 +85,7 @@ class PacketCapture(DatabaseModule,
 
         zi_logger.log(f"COMMAND: {command}")
 
-        _, error = connection_obj.execute_command(command, return_stderr=True)
+        _, error = connection_obj.execute_command(device, command, return_stderr=True)
 
         if error:
             raise RuntimeError(f"Command execution failed: {command}")
@@ -60,12 +94,20 @@ class PacketCapture(DatabaseModule,
 
     def stop_frame_capture(self,
                            device):
+        """
+        Stop all running tcpdump processes on the device.
+
+        ``device`` is the reference name of the device
+
+        ``returns`` True if stopped, or no tcpdump was running
+
+        ``raise`` RuntimeError if tcpdump could not be stopped
+        """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
         try:
-            _, error = connection_obj.execute_command("killall tcpdump", return_stderr=True)
+            _, error = connection_obj.execute_command(device, "killall tcpdump", return_stderr=True)
             if error != '' and "tcpdump: no process killed" not in error:
                 raise RuntimeError(f"Command execution failed: killall tcpdump")
             return True
@@ -75,9 +117,17 @@ class PacketCapture(DatabaseModule,
     def delete_captured_pcap(self,
                              device: str,
                              pcap_file=None):
+        """
+        Delete a capture file from the ``pcap_remote_dir`` of the device.
+
+        ``device`` is the reference name of the device
+        and ``pcap_file`` is the name of the capture file
+
+        ``raise`` ValueError if no file name is given and RuntimeError if the
+        file could not be deleted
+        """
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         if pcap_file:
             remote_log_directory = self.db_obj.read_from_database(device, 'pcap_remote_dir')
@@ -86,7 +136,7 @@ class PacketCapture(DatabaseModule,
             raise ValueError("No pcap file name specified")
 
         zi_logger.log(f"Remote path: {remote_path}")
-        _, error = connection_obj.execute_command(f"rm {remote_path}", return_stderr=True)
+        _, error = connection_obj.execute_command(device, f"rm {remote_path}", return_stderr=True)
         if error:
             raise RuntimeError(f"Failed to delete: {remote_path}")
 
@@ -94,11 +144,21 @@ class PacketCapture(DatabaseModule,
     def download_captured_pcap(self,
                                device: str,
                                file_name: str = None) -> str:
+        """
+        Copy a capture file from the ``pcap_remote_dir`` of the device into
+        its ``pcap_local_dir``.
+
+        ``device`` is the reference name of the device
+        and ``file_name`` is the name of the capture file
+
+        ``returns`` the local path of the copied file
+
+        ``raise`` an exception if the file was not copied
+        """
 
         zi_logger.log(f"lib.utils.packet_sniffer.({device})")
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
 
         remote_log_directory = self.db_obj.read_from_database(device, 'pcap_remote_dir')
         remote_path = os.path.join(remote_log_directory, file_name)
@@ -111,7 +171,7 @@ class PacketCapture(DatabaseModule,
         zi_logger.log(f"REMOTE: {remote_path}")
         zi_logger.log(f"LOCAL: {local_file}")
 
-        connection_obj.get_file(remote_path, local_file)
+        connection_obj.get_file(device, remote_path, local_file)
 
         local_file = Path(local_file)
         
