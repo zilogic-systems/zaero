@@ -22,6 +22,7 @@ from zaero.map.packet_sniffer import PacketSniffer
 from zaero.map.packet_capture import PacketCapture
 from zaero.map.platform import platform
 from zaero.map.pdu import PduControl
+from zaero.map.traffic_generator import TrafficGenerator  
 import zaero.utils.zi_logger as zi_logger
 
 class zaero(Client,
@@ -33,7 +34,9 @@ class zaero(Client,
 	    PacketSniffer,
             PacketCapture,
             platform,
-	    PduControl):
+	    PduControl,
+            TrafficGenerator
+            ):
 
     def __init__(self):
         zi_logger.print_context()
@@ -49,4 +52,5 @@ class zaero(Client,
         PacketSniffer.__init__(self)
         PacketCapture.__init__(self)
         PduControl.__init__(self)
+        TrafficGenerator.__init__(self)    
         zi_logger.log("******* zaero __init__ : END")

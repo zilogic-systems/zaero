@@ -1,6 +1,7 @@
 from zaero.utils.packet_sniffer import PacketSniffer
 from zaero.utils.packet_capture import PacketCapture
 from zaero.utils.pdu_controller import PduController
+from zaero.utils.traffic_generator import TrafficGenerator
 import zaero.utils.zi_logger as zi_logger
 
 class UtilsModules:
@@ -8,7 +9,8 @@ class UtilsModules:
     __instance = None
     __modules = {'sniffer': PacketSniffer,
                  'capture': PacketCapture,
-		 'pdu': PduController}
+		 'pdu': PduController,
+		 'traffic_generator': TrafficGenerator}
     __module_objects = {}
 
     def __new__(cls, *args, **kwargs):

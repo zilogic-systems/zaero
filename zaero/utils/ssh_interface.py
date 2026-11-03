@@ -341,6 +341,7 @@ class SshInterface(DatabaseModule):
                         return_stdout: bool =True,
                         return_stderr: bool =False,
                         return_rc:bool =False,
+                        timeout: int = 10,
                         blocking_call:bool =True):
         """
         Execute the given command in the remote device
@@ -371,7 +372,7 @@ class SshInterface(DatabaseModule):
             out = None
             zi_logger.log(f"COMMAND : {command}")
             if blocking_call:
-                _stdin, stdout, stderr = SshInterface.__objects[SshInterface.__alias]['client'].exec_command(command, timeout=10)
+                _stdin, stdout, stderr = SshInterface.__objects[SshInterface.__alias]['client'].exec_command(command, timeout=timeout)
                 output = stdout.read().decode('utf-8').strip()
                 error = stderr.read().decode('utf-8').strip()
                 return_code = stdout.channel.recv_exit_status()

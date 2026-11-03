@@ -102,6 +102,7 @@ class Connection(DatabaseModule,
                         return_stdout: bool =True,
                         return_stderr: bool =False,
                         return_rc:bool =False,
+                        timeout: int = None,
                         blocking_call:bool =True):
         """
         Execute a shell command on the specified device and return the requested output.
@@ -129,10 +130,11 @@ class Connection(DatabaseModule,
         connection = self.db_obj.read_device_connection(device)
         connection_obj = self.get_connection_module_object(connection)
         out = connection_obj.execute_command(command,
-                                             return_stdout,
-                                             return_stderr,
-                                             return_rc,
-                                             blocking_call)
+                                             return_stdout = return_stdout,
+                                             return_stderr = return_stderr,
+                                             return_rc = return_rc,
+                                             timeout = timeout,
+                                             blocking_call = blocking_call)
         return out
 
     @keyword("Switch To Connection")
