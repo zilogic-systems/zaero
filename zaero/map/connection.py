@@ -129,32 +129,14 @@ class Connection(DatabaseModule,
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
         connection_obj = self.get_connection_module_object(connection)
-        out = connection_obj.execute_command(command,
+        out = connection_obj.execute_command(device,
+                                             command,
                                              return_stdout = return_stdout,
                                              return_stderr = return_stderr,
                                              return_rc = return_rc,
                                              timeout = timeout,
                                              blocking_call = blocking_call)
         return out
-
-    @keyword("Switch To Connection")
-    def switch_connection(self,
-                          device: str):
-        """
-        Switch the active connection context to the specified device so that
-        subsequent commands are directed to it.
-
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
-
-        Example:
-        | Switch To Connection | ap              |
-        | Switch To Connection | ap_lan_client_1 |
-        """
-        zi_logger.print_context()
-        connection = self.db_obj.read_device_connection(device)
-        connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)   
 
     @keyword("Close Connection")
     def close_connection(self,
@@ -199,7 +181,7 @@ class Connection(DatabaseModule,
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.get_file(source, destination)
+        connection_obj.get_file(device, source, destination)
 
     @keyword("Put File")
     def put_file(self,
@@ -222,4 +204,4 @@ class Connection(DatabaseModule,
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.put_file(source, destination)
+        connection_obj.put_file(device, source, destination)
