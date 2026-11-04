@@ -59,7 +59,7 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
             )
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
         log_file = f"{log_name}"
 
         cmd_parts = [
@@ -71,107 +71,12 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
         filter_cmd_parts = list(filter(None, cmd_parts))
         command = " ".join(filter_cmd_parts)
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True,
                                                blocking_call=False)
         if error:
             raise Exception(f"Failed to start iPerf server: {error}")
-
-    # def start_iperf_client(self,  # pylint: disable=R0913,R0914
-    #                        device: str,
-    #                        server_ip: str,
-    #                        bind_ip: str,
-    #                        protocol: str,
-    #                        log_name: str,
-    #                        port: int = 5201,
-    #                        timeout: int = None,
-    #                        bitrate: str = None,
-    #                        tos: str = None,
-    #                        window_size: str = None,
-    #                        mode: str = None,
-    #                        parallel_streams: int = None):
-    #     """
-    #     Generate an iperf client and store logs locally.
-    #     """
-    #     zi_logger.log(
-    #         f"generic.generic_traffic_generator.start_iperf_client({device},"
-    #         f"{server_ip}, {bind_ip}, {protocol}, {log_name}, {port}, {timeout}, "
-    #         f"{bitrate}, {tos}, {window_size}, {mode}, {parallel_streams})"
-    #     )
-
-    #     connection = self.db_obj.read_from_database(device, 'connection')
-    #     connection_obj = self.get_connection_module_object(connection)
-    #     connection_obj.switch_connection(device)
-
-    #     protocol = protocol.lower()
-    #     if protocol not in ('tcp', 'udp'):
-    #         raise ValueError(f"Invalid protocol '{protocol}'. Must be 'tcp' or 'udp'")
-
-    #     modes = [None, 'parallel', 'bidir', 'reverse']
-    #     if mode and mode.lower() not in modes:
-    #         raise ValueError(f"Mode '{mode}' not supported. Choose from {modes}")
-
-    #     cmd_parts = [
-    #         f"iperf3 -c {server_ip}",
-    #         f"-B {bind_ip}",
-    #         f"-p {port}",
-    #         f"-t {timeout}",
-    #         "--forceflush",
-    #         f"--logfile {log_name}",
-    #         "-u" if protocol == "udp" else ""
-    #     ]
-
-    #     if mode:
-    #         mode = mode.lower()
-    #         if mode == "reverse":
-    #             cmd_parts.append("-R")
-    #         elif mode == "parallel":
-    #             if not isinstance(parallel_streams, int) or parallel_streams < 1:
-    #                 raise ValueError("Parallel mode requires a valid stream count (parallel_streams ≥ 1).")
-    #             cmd_parts.append(f"-P {parallel_streams}")
-    #         elif mode == "bidir":
-    #             cmd_parts.append("--bidir")
-
-    #     if tos:
-    #         cmd_parts.append(f"-S {tos}")
-
-    #     if bitrate and protocol == "udp":
-    #         cmd_parts.append(f"-b {bitrate}")
-
-    #     if window_size and protocol == "tcp":
-    #         cmd_parts.append(f"-w {window_size}")
-
-    #     filter_cmd_parts = list(filter(None, cmd_parts))
-    #     command = " ".join(filter_cmd_parts) + " < /dev/null"
-    #     zi_logger.log(f"iPerf client command on {device}: {command}")
-
-    #     version = connection_obj.execute_command("iperf3 --version")
-    #     zi_logger.log(f"iPerf version on {device}: {version}")
-
-    #     retries = 3
-    #     for attempt in range(1, retries + 1):
-    #         connection_obj.execute_command(f"rm -f {log_name}")
-
-    #         error = connection_obj.execute_command(command,
-    #                                                return_stdout=False,
-    #                                                return_stderr=True)
-    #         log_out = connection_obj.execute_command(f"cat {log_name}")
-
-    #         if "iperf Done." in log_out:
-    #             zi_logger.log(f"iPerf client completed on {device} (attempt {attempt})")
-    #             break
-
-    #         zi_logger.print_warning(
-    #             f"iPerf client attempt {attempt}/{retries} failed on {device}\n"
-    #             f"stderr: {error}\nlog:\n{log_out}"
-    #         )
-    #         if attempt < retries:
-    #             time.sleep(3)
-    #     else:
-    #         zi_logger.print_error(f"iPerf client failed on {device} after {retries} attempts")
-    #         raise Exception(f"Failed to run iPerf client on {device}:\n{log_out}")
-
 
     def start_iperf_client(self,  # pylint: disable=R0913
                            device: str,
@@ -197,7 +102,7 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
 
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
 
         protocol = protocol.lower()
         if protocol not in ('tcp', 'udp'):
@@ -239,7 +144,7 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
         filter_cmd_parts = list(filter(None, cmd_parts))
         command = " ".join(filter_cmd_parts)
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True,
                                                timeout= time + 1 if time else None)
@@ -261,7 +166,7 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
 
         command = "killall iperf3"
 
-        connection_obj.execute_command(command,
+        connection_obj.execute_command(device, command,
                                        return_stdout=False,
                                        return_stderr=True)
 
@@ -276,10 +181,10 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
             )
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
         command = f"rm {dirpath}/*.log"
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
         if error:
@@ -296,11 +201,11 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
             )
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
         
         command = f"rm {filename}"
 
-        error = connection_obj.execute_command(command,
+        error = connection_obj.execute_command(device, command,
                                                return_stdout=False,
                                                return_stderr=True)
 
@@ -319,7 +224,7 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
             f"{remote_file}, {local_file}")
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
         connection_obj.get_file(remote_file, local_file)
 
     def put_iperf_log(self,
@@ -334,5 +239,5 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
             f"{local_file}, {remote_file}")
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
-        connection_obj.switch_connection(device)
+        
         connection_obj.put_file(local_file, remote_file)

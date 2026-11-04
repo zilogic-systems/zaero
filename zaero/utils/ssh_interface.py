@@ -356,11 +356,7 @@ class SshInterface(DatabaseModule):
             out = None
             zi_logger.log(f"COMMAND : {command}")
             if blocking_call:
-<<<<<<< HEAD
-                _stdin, stdout, stderr = SshInterface.__objects[SshInterface.__alias]['client'].exec_command(command, timeout=timeout)
-=======
-                _stdin, stdout, stderr = SshInterface.__objects[device]['client'].exec_command(command, timeout=10)
->>>>>>> 405fd45 (Modify modules to implement parallel command execution in different devices concurrently)
+                _stdin, stdout, stderr = SshInterface.__objects[device]['client'].exec_command(command, timeout=timeout)
                 output = stdout.read().decode('utf-8').strip()
                 error = stderr.read().decode('utf-8').strip()
                 return_code = stdout.channel.recv_exit_status()
