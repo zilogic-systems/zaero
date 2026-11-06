@@ -254,7 +254,6 @@ class SshInterface(DatabaseModule):
             self.__db_obj.write_into_database(device, "connection_status", False)
             return False
 
-    
 
     def connect_with_device(self,
                             device: str):
@@ -317,8 +316,8 @@ class SshInterface(DatabaseModule):
         except Exception as err:
             zi_logger.log(f"could not login with {device}", status="ERROR")
             zi_logger.log(f"{err}", status="ERROR")
-            #return False
-            raise Exception(f"{err}")
+            return False
+            #raise Exception(f"{err}")
         
 
     def execute_command(self, # pylint: disable=R0913

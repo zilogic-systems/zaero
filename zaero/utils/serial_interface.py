@@ -157,6 +157,7 @@ class SerialInterface(DatabaseModule):
                         return_stdout: bool =True,
                         return_stderr: bool =False,
                         return_rc:bool =False,
+                        timeout: int = 10,
                         blocking_call:bool =True,
                         prompt: str = "#"):
         """
