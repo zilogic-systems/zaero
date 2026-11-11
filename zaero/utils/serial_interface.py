@@ -158,8 +158,8 @@ class SerialInterface(DatabaseModule):
                         return_stderr: bool =False,
                         return_rc:bool =False,
                         timeout: int = 10,
-                        blocking_call:bool =True,
-                        prompt: str = "#"):
+                        blocking_call:bool =True)
+                        #prompt: str = "#"):
         """
         Execute the given command in the device over the serial console
 
@@ -188,6 +188,7 @@ class SerialInterface(DatabaseModule):
                 ser.write(f"{command}\n".encode())
                 return None
 
+            prompt = self.__db_obj.read_from_database(device,"prompt")
             output = self.__run_command(ser, command, prompt)
             error = ""
             return_code = None
