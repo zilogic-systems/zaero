@@ -162,6 +162,7 @@ extender3_wlan_client_1:
 pdu:
     device_present: False            # Indicates whether the PDU device is available
     serial_port: '/dev/ttyUSB0'      # Serial port used to communicate with the PDU
+    prompt: '#'	 		     # Prompt to be checked once the device rebooted or after command executed
     controller: 2                    # PDU outlet number assigned to the controller
     extender1: 1                     # PDU outlet number assigned to extender1
     extender2: 3                     # PDU outlet number assigned to extender2

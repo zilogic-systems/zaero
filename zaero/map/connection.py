@@ -102,7 +102,7 @@ class Connection(DatabaseModule,
                         return_stdout: bool =True,
                         return_stderr: bool =False,
                         return_rc:bool =False,
-                        timeout: int = None,
+                        timeout: int = 30,
                         blocking_call:bool =True):
         """
         Execute a shell command on the specified device and return the requested output.
