@@ -16,7 +16,6 @@ from zaero.map.client import Client
 from zaero.map.connection import Connection
 from zaero.map.database import Database
 from zaero.map.ping import Ping
-from zaero.map.operating_system import OperatingSystem
 from zaero.map.ui import Ui
 from zaero.map.packet_sniffer import PacketSniffer
 from zaero.map.packet_capture import PacketCapture
@@ -29,7 +28,6 @@ class zaero(Client,
             Connection,
             Database,
             Ping,
-            OperatingSystem,
             Ui,
 	    PacketSniffer,
             PacketCapture,
@@ -47,7 +45,6 @@ class zaero(Client,
         Connection.__init__(self)
         Database.__init__(self)
         Ping.__init__(self)
-        OperatingSystem.__init__(self)
         Ui.__init__(self)
         PacketSniffer.__init__(self)
         PacketCapture.__init__(self)

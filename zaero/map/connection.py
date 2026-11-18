@@ -19,7 +19,6 @@ Author: Zilogic Systems <code@zilogic.com>
 """
 # Third-party Libraries
 from robot.api.deco import keyword
-from robot.api import SkipExecution
 
 # Local Libraries
 from zaero.bridge.database_module import DatabaseModule
@@ -54,8 +53,6 @@ class Connection(DatabaseModule,
         - ``device`` is the name given to the device as mentioned
                      in the dut.yaml config file
 
-        - ``Raises`` SkipExecution if the connection cannot be established
-
         Example:
         | Connect With Device | ap             |
         | Connect With Device | ap_lan_client_1 |
@@ -71,9 +68,6 @@ class Connection(DatabaseModule,
             zi_logger.log(f"connection_obj: {connection_obj}")
             status = connection_obj.connect_with_device(device)
             return status
-            # if not status:
-            #     raise SkipExecution(
-            #         f"Could not established remote connection with device: {device}")
 
     @keyword("Is Device Alive")
     def is_device_alive(self,
