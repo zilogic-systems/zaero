@@ -12,3 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Factories that pick the platform, connection, UI and utility object
+to use for a device.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+

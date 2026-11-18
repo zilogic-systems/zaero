@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles various client operation
+Robot Framework keywords to connect to devices and run commands on them.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -28,8 +28,9 @@ import zaero.utils.zi_logger as zi_logger
 class Connection(DatabaseModule,
                  ConnectionModules):
     """
-    Provides keywords to establish connections with different devices
-    which using different connection types (SSH, ADB, Serial)
+    Keywords to connect to devices and run commands over SSH, ADB or serial.
+    Each keyword reads the ``connection`` of the device and calls the
+    matching connection module.
     """
 
     ROBOT_AUTO_KEYWORDS = False
@@ -47,15 +48,18 @@ class Connection(DatabaseModule,
     def connect_with_device(self,
                             device: str):
         """
-        Establish a remote connection with the specified device.
-        Skips execution if the device is marked as not present in the database.
+        Connect to the device using its ``connection`` type.
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        Does nothing if ``device_present`` of the device is False.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` True if connected, False if the connection failed (SSH),
+          or None if the device is not present
 
         Example:
-        | Connect With Device | ap             |
-        | Connect With Device | ap_lan_client_1 |
+        | Connect With Device | controller |
+        | Connect With Device | extender1  |
         """
         zi_logger.print_context()
         state = self.db_obj.read_from_database(device, 'device_present')
@@ -73,16 +77,16 @@ class Connection(DatabaseModule,
     def is_device_alive(self,
                         device: str):
         """
-        Check whether the remote connection to the device is still active.
+        Check whether the connection to the device is still active.
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``Returns`` True if the device is reachable, False otherwise
+        - ``Returns`` True if the device answers, False otherwise
+
+        - ``Raises`` RuntimeError if the device was never connected
 
         Example:
-        | ${ret} | Is Device Alive | ap              |
-        | ${ret} | Is Device Alive | ap_lan_client_1 |
+        | ${alive} | Is Device Alive | controller |
         """
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
@@ -99,26 +103,35 @@ class Connection(DatabaseModule,
                         timeout: int = 30,
                         blocking_call:bool =True):
         """
-        Execute a shell command on the specified device and return the requested output.
+        Run a shell command on the device and return the requested output.
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``command`` is the shell command to run on the device
+        - ``command`` is the shell command to run
 
-        - ``return_stdout`` if True, include stdout in the return value (default: True)
+        - ``return_stdout`` if True, return the stdout (default: True)
 
-        - ``return_stderr`` if True, include stderr in the return value (default: False)
+        - ``return_stderr`` if True, return the stderr (default: False).
+          Always empty for serial connections
 
-        - ``return_rc`` if True, include the return code in the return value (default: False)
+        - ``return_rc`` if True, return the exit code (default: False)
 
-        - ``blocking_call`` if True, wait for the command to finish (default: True)
+        - ``timeout`` is the command timeout in seconds (default: 30)
 
-        - ``Returns`` stdout, stderr, and/or return code depending on the flags set
+        - ``blocking_call`` if True, wait for the command to finish (default:
+          True). If False, the command is started in the background and None
+          is returned
+
+        - ``Returns`` the selected values in the order stdout, stderr, exit code.
+          A single value is returned as is, several as a tuple, none as None
+
+        - ``Raises`` RuntimeError if the device is not alive or the command
+          could not be run
 
         Example:
-        | ${out} | Execute Command | ap | uname -a |
-        | ${out} | ${err} | Execute Command | ap | cat /etc/os-release | return_stderr=True |
+        | ${out} | Execute Command | controller | uname -a |
+        | ${out} | ${err} | Execute Command | controller | cat /etc/os-release | return_stderr=True |
+        | ${rc} | Execute Command | extender1 | reboot | return_stdout=False | return_rc=True |
         """
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
@@ -136,15 +149,14 @@ class Connection(DatabaseModule,
     def close_connection(self,
                          device: str):
         """
-        Close the remote connection to the specified device.
-        Skips if the device is marked as not present in the database.
+        Close the connection to the device.
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        Does nothing if ``device_present`` of the device is False.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
 
         Example:
-        | Close Connection | ap              |
-        | Close Connection | ap_lan_client_1 |
+        | Close Connection | controller |
         """
         zi_logger.print_context()
         state = self.db_obj.read_from_database(device, 'device_present')
@@ -160,17 +172,18 @@ class Connection(DatabaseModule,
                  source: str,
                  destination: str):
         """
-        Download a file from the remote device to the local machine.
+        Copy a file from the device to the local machine (SSH only).
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``source`` is the full path of the file on the remote device
+        - ``source`` is the file path on the device
 
-        - ``destination`` is the local path where the file will be saved
+        - ``destination`` is the local file path
+
+        - ``Raises`` RuntimeError if the file could not be copied
 
         Example:
-        | Get File | ap | /tmp/log.txt | /home/user/log.txt |
+        | Get File | controller | /tmp/log.txt | /home/user/log.txt |
         """
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)
@@ -183,17 +196,18 @@ class Connection(DatabaseModule,
                  source: str,
                  destination: str):
         """
-        Upload a file from the local machine to the remote device.
+        Copy a file from the local machine to the device (SSH only).
 
-        - ``device`` is the name given to the device as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``source`` is the local path of the file to upload
+        - ``source`` is the local file path
 
-        - ``destination`` is the full path on the remote device where the file will be placed
+        - ``destination`` is the file path on the device
+
+        - ``Raises`` Exception if the file could not be copied
 
         Example:
-        | Put File | ap | /home/user/config.txt | /tmp/config.txt |
+        | Put File | controller | /home/user/config.txt | /tmp/config.txt |
         """
         zi_logger.print_context()
         connection = self.db_obj.read_device_connection(device)

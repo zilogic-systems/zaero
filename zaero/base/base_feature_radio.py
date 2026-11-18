@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles radio abstract methods
+Abstract base class for WiFi radio configuration methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -21,144 +21,423 @@ from abc import ABC, abstractmethod
 
 
 class BaseFeatureRadio(ABC):
-    """ This module provides abstract class for the APIs in radio"""
+    """
+    Abstract methods a platform plugin implements for WiFi radio configuration.
+    Implemented by external platform plugins for access points.
+    """
 
     @abstractmethod
     def load_wifi(self, device: str):
-        """ Load wifi abstract method"""
+        """
+        Load the WiFi configuration of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement load_wifi()")
 
     @abstractmethod
     def set_channel(self, device: str, index: str, channel: str):
-        """ Set channel abstract method"""
+        """
+        Set the channel of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``channel`` is the channel number
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_channel()")
 
     @abstractmethod
     def get_channel(self, device: str, index: str):
-        """ Get channel abstract method"""
+        """
+        Get the channel of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the channel
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_channel()")
 
     @abstractmethod
     def check_channel(self, device: str, index: str, channel: str):
-        """ Check channel abstract method"""
+        """
+        Check that the radio is on the given channel.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``channel`` is the channel number
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_channel()")
 
     @abstractmethod
     def check_regulatory_domain(self, device: str, index: str, reg_domain: str):
-        """ Check regulatory domain abstract method"""
+        """
+        Check that the radio uses the given regulatory domain.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``reg_domain`` is the regulatory domain
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_regulatory_domain()")
 
     @abstractmethod
     def get_physical_interface_index(self, device: str, index: str):
-        """ Get physical interface index abstract method"""
+        """
+        Get the physical interface index of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the physical interface index
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_physical_interface_index()")
 
     @abstractmethod
     def get_supported_channels_count(self, device: str, index: str):
-        """ Get supported channels count abstract method"""
+        """
+        Get the number of channels the radio supports.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the number of channels
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_supported_channels_count()")
 
     @abstractmethod
     def get_supported_channels_list(self, device: str, index: str):
-        """ Get supported channels list abstract method"""
+        """
+        Get the channels the radio supports.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the list of channels
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_supported_channels_list()")
 
     @abstractmethod
     def get_highest_supported_channel(self, device: str, index: str):
-        """ Get highest supported channel abstract method"""
+        """
+        Get the highest channel the radio supports.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the channel
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_highest_supported_channel()")
 
     @abstractmethod
     def set_bandwidth(self, device: str, index: str, bandwidth: str):
-        """ Set bandwidth abstract method"""
+        """
+        Set the channel width of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``bandwidth`` is the channel width
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_bandwidth()")
 
     @abstractmethod
     def get_bandwidth(self, device: str, index: str):
-        """ Get bandwidth abstract method"""
+        """
+        Get the channel width of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the channel width
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_bandwidth()")
 
     @abstractmethod
     def check_bandwidth(self, device: str, index: str, bandwidth: str):
-        """ Check bandwidth abstract method"""
+        """
+        Check that the radio uses the given channel width.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``bandwidth`` is the channel width
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_bandwidth()")
 
     @abstractmethod
     def set_radio_state(self, device: str, index: str, state: str):
-        """ Set radio state abstract method"""
+        """
+        Enable or disable the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``state`` is the desired state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_radio_state()")
 
     @abstractmethod
     def get_radio_state(self, device: str, index: str):
-        """ Get radio state abstract method"""
+        """
+        Get whether the radio is enabled.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the radio state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_radio_state()")
 
     @abstractmethod
     def set_radio_standard(self, device: str, index: str, standard: str):
-        """ Set radio standard abstract method"""
+        """
+        Set the WiFi standard of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``standard`` is the WiFi standard, e.g. ``ax``
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_radio_standard()")
 
     @abstractmethod
     def get_radio_standard(self, device: str, index: str):
-        """ Get radio standard abstract method"""
+        """
+        Get the WiFi standard of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the WiFi standard
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_radio_standard()")
 
     @abstractmethod
     def set_txpower(self, device: str, index: str, txpower: str):
-        """ Set transmit power abstract method"""
+        """
+        Set the transmit power of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``txpower`` is the transmit power
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_txpower()")
 
     @abstractmethod
     def get_txpower(self, device: str, index: str):
-        """ Get transmit power abstract method"""
+        """
+        Get the transmit power of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the transmit power
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_txpower()")
 
     @abstractmethod
     def check_txpower(self, device: str, index: str, txpower: str):
-        """ Check transmit power abstract method"""
+        """
+        Check that the radio uses the given transmit power.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``txpower`` is the transmit power
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_txpower()")
 
     @abstractmethod
     def set_noscan(self, device: str, index: str, noscan: str):
-        """ Set noscan abstract method"""
+        """
+        Set the noscan option of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``noscan`` is the noscan setting
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_noscan()")
 
     @abstractmethod
     def get_noscan(self, device: str, index: str):
-        """ Get noscan abstract method"""
+        """
+        Get the noscan option of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the noscan setting
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_noscan()")
 
     @abstractmethod
     def set_prop_coext(self, device: str, index: str, coext: str):
-        """ Set coexistence property abstract method"""
+        """
+        Set the vendor specific coexistence option of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``coext`` is the coexistence setting
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_prop_coext()")
 
     @abstractmethod
     def set_prop_cfg(self, device: str, index: str, cfg: str):
-        """ Set cfg80211 property abstract method"""
+        """
+        Set a vendor specific configuration option of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``cfg`` is the vendor specific configuration value
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_prop_cfg()")
 
     @abstractmethod
     def set_regulatory_domain(self, device: str, index: str, reg_domain: str):
-        """ Set regulatory domain abstract method"""
+        """
+        Set the regulatory domain of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``reg_domain`` is the regulatory domain
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_regulatory_domain()")
 
     @abstractmethod
     def set_country_regulatory_domain(self, device: str, index: str, country: str):
-        """ Set country regulatory domain abstract method"""
+        """
+        Set the regulatory domain of the radio from a country code.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``country`` is the country code
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_country_regulatory_domain()")
 
     @abstractmethod
     def get_regulatory_domain(self, device: str, index: str):
-        """ Get regulatory domain abstract method"""
+        """
+        Get the regulatory domain of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the regulatory domain
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_regulatory_domain()")
 
     @abstractmethod
     def set_radio_type(self, device: str, index: str, radio_type: str):
-        """ Set radio type abstract method"""
+        """
+        Set the type of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``radio_type`` is the radio type
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_radio_type()")
 
     @abstractmethod
     def get_radio_type(self, device: str, index: str):
-        """ Get radio type abstract method"""
+        """
+        Get the type of the radio.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the radio type
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_radio_type()")

@@ -12,12 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Linux platform plugin. Used for devices with ``platform: 'linux'``.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 from zaero.linux.feature_client import FeatureClient
 from zaero.linux.feature_ping import FeaturePing
 import zaero.utils.zi_logger as zi_logger
 
 class linux(FeatureClient,
             FeaturePing):
+    """
+    Linux platform plugin. Implements the client keywords (FeatureClient,
+    using nmcli, iw, wpa_cli and ifconfig) and the ping keywords
+    (FeaturePing) for Linux hosts.
+    """
     
     def __init__(self):
         zi_logger.print_context()

@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+Serial console connection module based on pyserial.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 import serial
@@ -23,7 +25,8 @@ import zaero.utils.zi_logger as zi_logger
 
 class SerialInterface(DatabaseModule):
     """
-    A library to establish serial console connections into devices
+    Connection module for devices reached over a serial console. Used for
+    devices with ``connection: 'serial'``.
     """
 
     ROBOT_AUTO_KEYWORDS = False
@@ -57,13 +60,17 @@ class SerialInterface(DatabaseModule):
         """
         Open the serial port of a device and register it under an alias.
 
-        ``serial_port`` is the serial device, e.g. /dev/ttyUSB0
-        and ``alias`` is the reference name for this connection
-        and ``baudrate`` is the baud rate of the serial port
-        and ``timeout`` is the read timeout in seconds
-        and ``write_timeout`` is the write timeout in seconds
+        - ``serial_port`` is the serial device, e.g. ``/dev/ttyUSB0``
 
-        ``raise`` RuntimeError if the given alias is already registered
+        - ``alias`` is the connection name, normally the device name
+
+        - ``baudrate`` is the baud rate
+
+        - ``timeout`` is the read timeout in seconds
+
+        - ``write_timeout`` is the write timeout in seconds
+
+        - ``Raises`` RuntimeError if the alias is already registered
         """
         zi_logger.print_context()
         if alias is not None and alias in SerialInterface.__objects:
@@ -91,12 +98,12 @@ class SerialInterface(DatabaseModule):
     def connect_with_device(self,
                              device: str):
         """
-        Connect to the given device over its serial port, using the
-        ``serial_port`` and ``serial_baudrate`` from the database.
+        Open the serial connection of the device with ``serial_port`` and
+        ``serial_baudrate`` from the config.
 
-        ``device`` is the reference name of the device
+        - ``device`` is the device name
 
-        ``returns`` True if connected, else False
+        - ``Returns`` True if connected, False otherwise
         """
 
         zi_logger.print_context()
@@ -114,20 +121,11 @@ class SerialInterface(DatabaseModule):
     def switch_connection(self,
                           alias: str):
         """
-        Switch the SSH connection into the specifice device
+        Make the given connection the current one.
 
-        ``alias`` the reference name assigned to the ssh client object
-        of the remote device
+        - ``alias`` is the device name
 
-        ``raise`` a runtime error if the reference alias name is not
-        present in the database dictionary
-
-        Example:
-        | Switch To Connection | ap                        |
-        | Switch To Connection | ap_lan_client_01          |
-        | Switch To Connection | ap_wlan_client_02         |
-        | Switch To Connection | repeate_01
-        | Switch To Connection | repeater_01_lan_client_01 |
+        - ``Raises`` RuntimeError if the device is not connected
         """
         zi_logger.print_context()
         if alias not in SerialInterface.__objects:
@@ -140,8 +138,15 @@ class SerialInterface(DatabaseModule):
                       command: str,
                       prompt: str) -> str:
         """
-        Write the command into the serial console and read the output
-        until the shell prompt, stripping the echoed command and the prompt.
+        Write a command to the serial console and read until the prompt.
+
+        - ``ser`` is the open serial port
+
+        - ``command`` is the command to run
+
+        - ``prompt`` is the shell prompt that ends the output
+
+        - ``Returns`` the output without the echoed command and the prompt
         """
         ser.reset_input_buffer()
         ser.write(f"{command}\n".encode())
@@ -161,21 +166,30 @@ class SerialInterface(DatabaseModule):
                         blocking_call:bool =True):
                         #prompt: str = "#"):
         """
-        Execute the given command in the device over the serial console
+        Run a command on the device over the serial console. The prompt that
+        ends the output is read from the ``prompt`` field of the device config.
 
-        ``device`` is the reference name of the device
-        and ``command`` is the command to be executed in the device
-        and ``return_stdout`` is to return the stdout of the command executed
-        and ``return_stderr`` is to return the stderr of the command executed;
-        the serial console merges stderr into stdout, so it is always empty
-        and ``return_rc`` is to return the return code of the command executed
-        and ``blocking_call`` is to select whether to wait for the command output
-        and ``prompt`` is the shell prompt marking the end of the output
+        - ``device`` is the device name
 
-        ``returns`` the combination of stdout, std_err, and return code based on
-        the arguments provided
+        - ``command`` is the command to run
 
-        ``raise`` a runtime error if could not execute the command in the device
+        - ``return_stdout`` if True, return the output
+
+        - ``return_stderr`` if True, return the stderr. The console merges
+          stderr into the output, so this is always an empty string
+
+        - ``return_rc`` if True, return the exit code, read with ``echo $?``
+
+        - ``timeout`` is not used; the port read timeout applies
+
+        - ``blocking_call`` if False, write the command and return None without
+          reading the output
+
+        - ``Returns`` the selected values in the order stdout, stderr, exit code.
+          A single value is returned as is, several as a tuple, none as None
+
+        - ``Raises`` RuntimeError if the device is not connected or the command
+          could not be run
         """
         zi_logger.print_context()
         if device not in SerialInterface.__objects:
@@ -217,11 +231,12 @@ class SerialInterface(DatabaseModule):
     def close_connection(self,
                          device: str):
         """
-        Close the serial connection of the given device.
+        Close the serial connection of the device.
 
-        ``device`` is the reference name of the device
+        - ``device`` is the device name
 
-        ``raise`` RuntimeError if the device is not connected or could not be closed
+        - ``Raises`` RuntimeError if the device is not connected or the port
+          could not be closed
         """
 
         zi_logger.print_context()
@@ -236,9 +251,7 @@ class SerialInterface(DatabaseModule):
             raise RuntimeError(err) from err
 
     def close_all_connections(self):
-        """
-        Close all the established serial connections.
-        """
+        """Close all serial connections and forget them."""
 
         zi_logger.print_context()
         aliases = list(SerialInterface.__objects.keys())

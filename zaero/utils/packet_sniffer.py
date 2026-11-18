@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+WiFi sniffing on a remote sniffer device with airmon-ng, iw and tcpdump.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 import os

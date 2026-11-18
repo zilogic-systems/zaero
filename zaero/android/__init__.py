@@ -12,10 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Android platform plugin. Used for devices with ``platform: 'android'``.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 from zaero.android.feature_client import FeatureClient
 import zaero.utils.zi_logger as zi_logger
 
 class android(FeatureClient):
+    """
+    Android platform plugin. Implements the client keywords (FeatureClient)
+    for Android devices over ADB.
+    """
     def __init__(self):
         zi_logger.print_context()
         zi_logger.log("Adb __init__ : START")

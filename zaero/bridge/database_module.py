@@ -12,10 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Gives access to the shared in-memory database.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 from zaero.utils.database import Database
 import zaero.utils.zi_logger as zi_logger
 
 class DatabaseModule:
+    """
+    Singleton mixin that gives every zaero class access to the one shared
+    Database object holding the config data.
+    """
 
     __instance = None
     __module_object = None
@@ -31,6 +41,11 @@ class DatabaseModule:
         zi_logger.print_context()
 
     def get_database_module_object(self):
+        """
+        Get the shared Database object, creating it on first use.
+
+        - ``Returns`` the zaero.utils.database.Database object
+        """
         zi_logger.print_context()
         if DatabaseModule.__module_object is None:
              DatabaseModule.__module_object = Database()

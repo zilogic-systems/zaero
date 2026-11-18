@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+Robot Framework keywords to generate traffic with iperf3.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 
@@ -26,14 +28,8 @@ from robot.api.deco import keyword
 
 class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
     """
-    TrafficGenerator is a Robot Framework test library for
-    performing iperf-based traffic generation over SSH.
-
-    This library is designed to cover the full functionality of
-    the iperf tool across different platforms.
-
-    It provides multiple keywords that allow interaction with
-    iperf through SSH connections.
+    Keywords to run iperf3 servers and clients on devices and handle their
+    log files. Commands are run through the device's connection.
     """
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -54,19 +50,20 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                            log_name: str,
                            port: int = 5201):
         """
-        Generate an iperf server and store logs locally.
+        Start an iperf3 server in the background on the device.
 
-        - ``device`` Specifies the device name.
-        - ``bind_ip`` Specified associated with the address
-        - ``log_name`` Name of the log file,
-            typically set to the test case name.
-        - ``port`` Specifies the port number. The default is 5201.
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``bind_ip`` is the address the server binds to (``-B``)
+
+        - ``log_name`` is the log file on the device (``--logfile``),
+          e.g. the test case name
+
+        - ``port`` is the server port (``-p``). Defaults to 5201
 
         Example:
-        | Start Iperf Server  | Ap | 192.168.1.1 | demo |
-        | Start Iperf Server  | Ap | 192.168.1.1 | log_name = TC001 | 5001 |
-        | Start Iperf Server  | Ap | 192.168.1.1 | demo | port = 5222 |
-
+        | Start Iperf Server | controller | 192.168.1.1 | TC001.log |
+        | Start Iperf Server | controller | 192.168.1.1 | TC001.log | port=5222 |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.start_iperf_server({device}, "
@@ -92,9 +89,42 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                         mode: str = None,
                         parallel_streams: int = None):
         """
-        Start iperf3 client traffic.
+        Run an iperf3 client on the device and wait for it to finish.
 
-        timeout: Duration of the iperf3 test in seconds.
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``server_ip`` is the iperf3 server address (``-c``)
+
+        - ``bind_ip`` is the local address to bind to (``-B``)
+
+        - ``protocol`` is ``tcp`` or ``udp``
+
+        - ``log_name`` is the log file on the device (``--logfile``)
+
+        - ``port`` is the server port (``-p``). Defaults to 5201
+
+        - ``time`` is the test duration in seconds (``-t``). The command timeout
+          is ``time`` + 1 seconds
+
+        - ``bitrate`` is the target bitrate (``-b``), UDP only
+
+        - ``tos`` is the IP type of service (``-S``)
+
+        - ``window_size`` is the TCP window size (``-w``), TCP only
+
+        - ``mode`` is ``reverse`` (``-R``), ``parallel`` (``-P``) or ``bidir``
+          (``--bidir``), or None for a normal test
+
+        - ``parallel_streams`` is the number of parallel streams, required when
+          ``mode`` is ``parallel``
+
+        - ``Raises`` ValueError for an invalid protocol, mode or stream count,
+          Exception if iperf3 reports an error
+
+        Example:
+        | Start Iperf Client | controller_wlan_client_1 | 192.168.1.1 | 192.168.1.20 | tcp | TC001.log | time=10 |
+        | Start Iperf Client | controller_wlan_client_1 | 192.168.1.1 | 192.168.1.20 | udp | TC002.log | time=10 | bitrate=100M |
+        | Start Iperf Client | controller_wlan_client_1 | 192.168.1.1 | 192.168.1.20 | tcp | TC003.log | time=10 | mode=parallel | parallel_streams=${4} |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.start_iperf_client("
@@ -123,13 +153,12 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
     def stop_iperf_server(self,
                           device: str):
         """
-        Stop the iperf server using `pkill` on Linux/macOS
-        or `taskkill` on Windows.
+        Stop all iperf3 processes on the device with ``killall iperf3``.
 
-        - ``device``       Specifies the device name.
+        - ``device`` is the device name as defined in the infra.yaml config file
 
         Example:
-        | Stop Iperf Server | Ap |
+        | Stop Iperf Server | controller |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.stop_iperf_server({device})")
@@ -142,15 +171,16 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                       remote_file: str,
                       local_file: str):
         """
-        Retrieve a iperf log from the remote machine.
+        Copy an iperf3 log file from the device to the local machine.
 
-        - ``device`` Specified a remote device.
-        - ``remote_file`` The file path on the remote machine.
-        - ``local_file`` The destination path on the local.
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``remote_file`` is the log file path on the device
+
+        - ``local_file`` is the local destination path
 
         Example:
-        | Get Iperf Log | Ap | /remote/file.log | /tmp/file.log | #Linux |
-        | Get Iperf Log | Ap | C:\\remote\\file.log | C:\\file.log | #Windows |
+        | Get Iperf Log | controller | /tmp/TC001.log | /home/user/TC001.log |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.get_iperf_log({device},"  
@@ -164,15 +194,16 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                       local_file: str,
                       remote_file: str):
         """
-        Transfer a file from the local machine to the remote machine.
+        Copy a file from the local machine to the device.
 
-        - ``device`` Specified the remote machine.
-        - ``local_file`` The file path on the local machine.
-        - ``remote_file`` The destination path on the remote.
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``local_file`` is the local file path
+
+        - ``remote_file`` is the destination path on the device
 
         Example:
-        | Put Iperf Log | Ap | /test/file.log | /tmp/file.log | # Linux |
-        | Put Iperf Log | Ap | C:\\local\\file.log | C:\\file.log | # Windows |
+        | Put Iperf Log | controller | /home/user/TC001.log | /tmp/TC001.log |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.put_iperf_log({device}, "  
@@ -185,14 +216,16 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                           device: str,
                           dirpath: str):
         """
-        Remove Iperf Logs From specified device and specified directory.
+        Delete all ``*.log`` files in a directory on the device.
 
-        - ``device`` Mention a device name.
-        - ``dirpath`` Specified a directory path
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dirpath`` is the directory on the device
+
+        - ``Raises`` Exception if the command fails
 
         Example:
-        | Remove Iperf Logs | Client | /tmp | # For Linux |
-        | Remove Iperf Logs | Client | C:\\Windows\temp" | # Windows |
+        | Remove Iperf Logs | controller_wlan_client_1 | /tmp |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.remove_iperf_logs({device})")
@@ -204,14 +237,16 @@ class TrafficGenerator(DatabaseModule,UtilsModules,ConnectionModules):
                          device: str,
                          filename: str):
         """
-        Remove Iperf Log From specified device.
+        Delete a log file on the device.
 
-        - ``device`` Mention a device name.
-        - ``filename`` Specified filename.
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``filename`` is the file path on the device
+
+        - ``Raises`` Exception if the command fails
 
         Example:
-        | Remove Iperf Log | Client | /tmp/iperf.log |  # For Linux |
-        | Remove Iperf Log | Client | C:\\temp\\iperf.log | # Windows |
+        | Remove Iperf Log | controller_wlan_client_1 | /tmp/TC001.log |
         """
         zi_logger.log(
             f"lib.map.TrafficGenerator.remove_iperf_log({device})")

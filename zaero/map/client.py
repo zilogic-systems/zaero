@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles various client operation
+Robot Framework keywords for WiFi and LAN client operations.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -28,9 +28,9 @@ import zaero.utils.zi_logger as zi_logger
 class Client(DatabaseModule,
              PlatformModules):
     """
-    This library provides keywords to handles basic functionality 
-    for various client across different platforms including Windows, 
-    Linux, Android, and iOS.
+    Keywords for client devices (Linux, Android). Each keyword reads the
+    ``platform`` of the device and calls the same method on that platform
+    plugin.
     """
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -47,16 +47,15 @@ class Client(DatabaseModule,
     def get_client_os(self,
                       device: str) -> str:
         """
-        Get OS name of the specified device.
+        Get the operating system name of the client device.
 
-        - ``device`` is the name given to the ap as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` the OS name of the given client device
+        - ``Returns`` the OS name, e.g. ``Linux`` (output of ``uname``)
 
         Example:
-        | ${ret} = | Get Client Os | ap_lan_client_1  |
-        | ${ret} = | Get Client Os | ap_wlan_client_1 |
+        | ${ret} | Get Client Os | controller_wlan_client_1 |
+        | ${ret} | Get Client Os | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -69,16 +68,15 @@ class Client(DatabaseModule,
     def get_client_ipv4(self,
                         device: str) -> str:
         """
-        Get IPV4 address of the given client device.
+        Get the IPv4 address of the ``data_iface`` of the client device.
 
-        - ``device`` is the name given to the ap as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` the IPV4 address of the given client device
+        - ``Returns`` the IPv4 address as a string
 
         Example:
-        | ${ret}  |  Get Client Ipv4  |  ap_lan_client_1   |
-        | ${ret}  |  Get Client Ipv4  |  ap_wlan_client_1  |
+        | ${ret} | Get Client Ipv4 | controller_wlan_client_1 |
+        | ${ret} | Get Client Ipv4 | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -92,22 +90,17 @@ class Client(DatabaseModule,
                                device:str,
                                state: int):
         """
-        Enable or disable radio of the given wlan client device
+        Turn the WiFi radio of the client device on or off.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``state`` is the desired state of the radio
+        - ``state`` is ``1`` to turn the radio on, ``0`` to turn it off
 
-            ``state == 1``, Turns the radio ON
-            
-            ``state == 0``, Turns the radio OFF
+        - ``Raises`` Exception if the command fails
 
         Example:
-        | Set Client Radio State  |  ap_wlan_client_1  |  0  |
-        | Set Client Radio State  |  ap_wlan_client_1  |  1  |
-        | Set Client Radio State  |  ap_wlan_client_2  |  0  |
-        | Set Client Radio State  |  ap_wlan_client_2  |  1  |
+        | Set Client Radio State | controller_wlan_client_1 | 0 |
+        | Set Client Radio State | controller_wlan_client_1 | 1 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -119,20 +112,15 @@ class Client(DatabaseModule,
     def get_client_radio_state(self,
                                device:str) -> int:
         """
-        Retrieve the radio state given wlan client device
+        Get the WiFi radio state of the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` specify the radio state whether it's enabled/disabled.
-
-            ``Enabled - 1``
-
-            ``Disabled - 0``
+        - ``Returns`` ``1`` if the radio is enabled, ``0`` if it is disabled
 
         Example:
-        | ${ret} | Get Client Radio State  |  ap_wlan_client_1  |
-        | ${ret} | Get Client Radio State  |  ap_wlan_client_2  |
+        | ${ret} | Get Client Radio State | controller_wlan_client_1 |
+        | ${ret} | Get Client Radio State | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -146,22 +134,18 @@ class Client(DatabaseModule,
                                    device:str,
                                    state: int):
         """
-        Enable or disable interface of the given client device
+        Bring the ``data_iface`` of the client device up or down.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``state`` is the desired state of the radio
-        
-        ``state == 1``, Interface ON
+        - ``state`` is ``1`` to bring the interface up, ``0`` to bring it down
 
-        ``state == 0``, Interface OFF
+        - ``Raises`` ValueError if the interface is missing or is not a WiFi or
+          Ethernet interface, Exception if the command fails
 
         Example:
-        | Set Client Interface State  |  ap_lan_client_1   |  0  |
-        | Set Client Interface State  |  ap_lan_client_1   |  1  |
-        | Set Client Interface State  |  ap_wlan_client_1  |  0  |
-        | Set Client Interface State  |  ap_wlan_client_1  |  1  |
+        | Set Client Interface State | controller_lan_client_1  | 0 |
+        | Set Client Interface State | controller_wlan_client_1 | 1 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -173,21 +157,15 @@ class Client(DatabaseModule,
     def get_client_interface_state(self,
                                    device:str) -> int:
         """
-        Retrieve the interface state whether it's enabled/disabled for 
-        given client device
+        Get the state of the ``data_iface`` of the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` specify the interface state whether it's enabled/disabled.
-        
-            ``Enabled - 1`` (Interface up)
-
-            ``Disabled - 0`` (Interface down)
+        - ``Returns`` ``1`` if the interface is up, ``0`` if it is down
 
         Example:
-        | ${ret} | Get Client Interface State  |  ap_lan_client_1  |
-        | ${ret} | Get Client Interface State  |  ap_wlan_client_1 |
+        | ${ret} | Get Client Interface State | controller_wlan_client_1 |
+        | ${ret} | Get Client Interface State | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -201,18 +179,16 @@ class Client(DatabaseModule,
                                  device: str,
                                  ssid: str):
         """
-        Verifies if the ssid configured on the AP is visible to the client device.
+        Check that the given SSID is visible in the WiFi scan of the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``ssid`` Specified a given ssid name.
+        - ``ssid`` is the SSID to look for
 
-        - ``Raise`` exception when the scanned ssid doesn't match
-                    the expected ssid.
+        - ``Raises`` Exception if the radio is off or the SSID is not visible
+
         Example:
-        | Check Ap Ssid Visibility | ap_wlan_client_1 | Openwrt |
-        | Check Ap Ssid Visibility | ap_wlan_client_2 | Openwrt |
+        | Check Ap Ssid Visibility | controller_wlan_client_1 | OpenWrt |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -224,19 +200,20 @@ class Client(DatabaseModule,
                                     device: str,
                                     ssid: str) -> str:
         """
-        Retrieve the BSSID for the given SSID.
+        Get the BSSID of the access point broadcasting the given SSID, as seen in
+        the WiFi scan of the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``ssid`` Specified a given ssid name.
+        - ``ssid`` is the SSID to look for
 
-        - ``Returns`` specifies the availability of bssid name.
+        - ``Returns`` the BSSID (MAC address) of the first matching scan entry,
+          or None if it is not found
+
+        - ``Raises`` Exception if the radio is off or the scan fails
 
         Example:
-        | ${ret} | Get Ap Bssid Visibility | ap_wlan_client_1 | Openwrt |
-        | ${ret} | Get Ap Bssid Visibility | ap_wlan_client_2 | Openwrt |
-
+        | ${bssid} | Get Ap Bssid Visibility | controller_wlan_client_1 | OpenWrt |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -253,27 +230,28 @@ class Client(DatabaseModule,
                                bssid: str = None,
                                hidden:str = False):
         """
-        Connect a client device to the specified WiFi SSID.
+        Connect the client device to a WiFi network.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``ssid`` Specified a given ssid name.
+        - ``ssid`` is the SSID to connect to
 
-        - ``password`` to connect with the WiFi network,
-                     It has to be provided to connect with secured networks.
-                     And should not be provided for open networks.
+        - ``password`` is the network password. Give it for secured networks,
+          leave it as None for open networks
 
-        - ``hidden`` Set to True if the SSID is hidden. Defaults to False.
+        - ``bssid`` if given, connect to and lock the connection to the access
+          point with this BSSID (Linux clients only)
 
-        - ``Raise`` exception when the device interface is wrong
-                     or ssid can't be found.
+        - ``hidden`` set to True if the SSID is hidden. Defaults to False
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface,
+          Exception or RuntimeError if a command fails
 
         Example:
-        | Connect Client To Ssid | ap_wlan_client_1 | Openwrt |
-        | Connect Client To Ssid | ap_wlan_client_1 | Openwrt | 12345678 |
-        | Connect Client To Ssid | ap_wlan_client_1 | Openwrt | hidden=True |
-        | Connect Client To Ssid | ap_wlan_client_1 | Openwrt | 12345678 | hidden=True |
+        | Connect Client To Ssid | controller_wlan_client_1 | OpenWrt |
+        | Connect Client To Ssid | controller_wlan_client_1 | OpenWrt | 12345678 |
+        | Connect Client To Ssid | controller_wlan_client_1 | OpenWrt | 12345678 | hidden=True |
+        | Connect Client To Ssid | extender1_wlan_client_1  | OpenWrt | 12345678 | bssid=aa:bb:cc:dd:ee:ff |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -288,16 +266,15 @@ class Client(DatabaseModule,
     def get_client_connected_ssid(self,
                                   device: str) -> str:
         """
-        Retrieve the SSID to which the client device connected currently.
+        Get the SSID the client device is currently connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The SSID of the connected WiFi network.
+        - ``Returns`` the SSID as a string
 
         Example:
-        | ${ret} = | Get Client Connected Ssid | ap_wlan_client_1 |
-        | ${ret} = | Get Client Connected Ssid | ap_wlan_client_2 |
+        | ${ret} | Get Client Connected Ssid | controller_wlan_client_1 |
+        | ${ret} | Get Client Connected Ssid | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -308,17 +285,15 @@ class Client(DatabaseModule,
     def get_client_channel(self,
                            device: str) -> int:
         """
-        Retrieve the channel of the currently connected WiFi network on the
-        specified device
+        Get the channel of the WiFi network the client device is connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The channel used by the currently connected Wi-Fi network.
+        - ``Returns`` the channel number as an integer
 
         Example:
-        | ${ret} | Get Client Channel | ap_wlan_client_1 |
-        | ${ret} | Get Client Channel | ap_wlan_client_2 |
+        | ${ret} | Get Client Channel | controller_wlan_client_1 |
+        | ${ret} | Get Client Channel | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -330,17 +305,19 @@ class Client(DatabaseModule,
                                  device: str,
                                  connection_name: str):
         """
-        Remove the connection based on name assigned to the connection.
+        Delete a saved network connection on the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
-                     
-        - ``connection_name`` is the name assigned to the specific connection.
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-                              Ex: For wifi interface, We should consider ssid as connection name.
+        - ``connection_name`` is the name of the connection. For a WiFi
+          connection it is normally the SSID. Android clients ignore it and
+          forget the currently connected network
+
+        - ``Raises`` TypeError if the ``data_iface`` is not a WiFi or Ethernet
+          interface, RuntimeError if the connection could not be deleted
 
         Example:
-        | Remove Client Connection | ap_wlan_client_1 | OpenWrt |
+        | Remove Client Connection | controller_wlan_client_1 | OpenWrt |
         """
         zi_logger.log(f"map.client.remove_client_connection({device}, {connection_name})")
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -351,15 +328,15 @@ class Client(DatabaseModule,
     def remove_all_wifi_connections(self,
                                     device: str):
         """
-        Remove all wifi connections based on device.
+        Delete all saved WiFi connections on the client device.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
+
+        - ``Raises`` TypeError if the ``data_iface`` is not a WiFi interface,
+          RuntimeError if a connection could not be deleted
 
         Example:
-        | Remove All Wifi Connections | ap_wlan_client_1 |
-        | Remove All Wifi Connections | ap_wlan_client_2 |
-
+        | Remove All Wifi Connections | controller_wlan_client_1 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -370,17 +347,15 @@ class Client(DatabaseModule,
     def get_client_bandwidth(self,
                              device: str) -> str:
         """
-        Retrieve the bandwidth of the currently connected WiFi network on the
-        specified device
+        Get the channel width of the WiFi network the client device is connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The bandwidth used by the currently connected Wi-Fi network.
+        - ``Returns`` the channel width as a string, e.g. ``80 MHz``
 
         Example:
-        | ${ret} | Get Client Bandwidth | ap_wlan_client_1 |
-        | ${ret} | Get Client Bandwidth | ap_wlan_client_2 |
+        | ${ret} | Get Client Bandwidth | controller_wlan_client_1 |
+        | ${ret} | Get Client Bandwidth | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -391,17 +366,15 @@ class Client(DatabaseModule,
     def get_client_encryption(self,
                               device: str) -> str:
         """
-        Retrieve the encryption of the currently connected WiFi network on the
-        specified device
+        Get the key management of the WiFi network the client device is connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The encryption type used by the currently connected Wi-Fi network.
+        - ``Returns`` the ``key_mgmt`` value from ``wpa_cli status``, e.g. ``WPA2-PSK``
 
         Example:
-        | ${ret} | Get Client Encryption | ap_wlan_client_1 |
-        | ${ret} | Get Client Encryption | ap_wlan_client_2 |
+        | ${ret} | Get Client Encryption | controller_wlan_client_1 |
+        | ${ret} | Get Client Encryption | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -412,17 +385,15 @@ class Client(DatabaseModule,
     def get_client_frequency(self,
                              device: str) -> int:
         """
-        Retrieve the frequency of the currently connected WiFi network on the
-        specified device
+        Get the frequency of the WiFi network the client device is connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The frequency used by the currently connected Wi-Fi network.
+        - ``Returns`` the frequency in MHz
 
         Example:
-        | ${ret} | Get Client Frequency | ap_wlan_client_1 |
-        | ${ret} | Get Client Frequency | ap_wlan_client_2 |
+        | ${ret} | Get Client Frequency | controller_wlan_client_1 |
+        | ${ret} | Get Client Frequency | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -433,17 +404,15 @@ class Client(DatabaseModule,
     def get_client_rssi(self,
                         device: str) -> str:
         """
-        Retrieve the RSSI value of the currently connected WiFi network on the
-        specified device
+        Get the signal strength of the WiFi network the client device is connected to.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        - ``Returns`` The RSSI value used by the currently connected Wi-Fi network.
+        - ``Returns`` the signal strength as a string, e.g. ``-45dBm``
 
         Example:
-        | ${ret} | Get Client Rssi | ap_wlan_client_1 |
-        | ${ret} | Get Client Rssi | ap_wlan_client_2 |
+        | ${ret} | Get Client Rssi | controller_wlan_client_1 |
+        | ${ret} | Get Client Rssi | extender1_wlan_client_1  |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -454,14 +423,15 @@ class Client(DatabaseModule,
     def disconnect_wifi_client(self,
                                device: str):
         """
-        Disconnect the wifi client from the currently connected wireless network.
+        Disconnect the client device from its current WiFi network.
 
-        - ``device`` is the name given to the client as mentioned
-                     in the dut.yaml config file
+        - ``device`` is the client name as defined in the infra.yaml config file
 
-        Examples:
-        | Disconnect Wifi Client | ap_wlan_client_1 |
-        | Disconnect Wifi Client | ap_wlan_client_2 |
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or
+          the device could not be disconnected
+
+        Example:
+        | Disconnect Wifi Client | controller_wlan_client_1 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')

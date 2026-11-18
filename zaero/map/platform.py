@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Robot Framework keyword to load a platform plugin into the library.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 import importlib
 import inspect
 from zaero.bridge.database_module import DatabaseModule
@@ -21,6 +27,10 @@ from robot.libraries.BuiltIn import BuiltIn ,RobotNotRunningError
 
 
 class platform(DatabaseModule):
+    """
+    Base of the zaero library that platform plugins are added to at run
+    time by `Configure Platform`.
+    """
 
     def __init__(self):
         zi_logger.print_context()
@@ -30,6 +40,26 @@ class platform(DatabaseModule):
     @classmethod
     @keyword("Configure Platform")
     def configure_platform(cls, os_name : str, external=True):
+        """
+        Load a platform plugin and add its keywords to the zaero library.
+
+        The module ``os_name`` (or ``zaero.<os_name>`` when ``external`` is
+        False) is imported, and its class named ``os_name`` is added as a base
+        class of ``platform``. When Robot Framework is running, the zaero
+        library is reloaded so the new keywords become available.
+
+        - ``os_name`` is the plugin name. The module and its class must both
+          have this name, e.g. ``rdkbmeshzap``
+
+        - ``external`` True (default) to import an installed plugin package,
+          False to import a built-in plugin from zaero
+
+        - ``Raises`` Exception if the module has no class named ``os_name``
+
+        Example:
+        | Configure Platform | rdkbmeshzap |
+        | Configure Platform | linux       | external=False |
+        """
         zi_logger.print_context()
         if external:
             imp_module = importlib.import_module(f"{os_name}")

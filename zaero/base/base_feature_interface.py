@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles interface abstract methods
+Abstract base class for WiFi interface (VAP) configuration methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -21,169 +21,494 @@ from abc import ABC, abstractmethod
 
 
 class BaseFeatureInterface(ABC):
-    """ This module provides abstract class for the APIs in interface"""
+    """
+    Abstract methods a platform plugin implements for WiFi interface (VAP) configuration.
+    Implemented by external platform plugins for access points.
+    """
 
     @abstractmethod
     def set_ssid(self, device: str, index: str, ssid: str):
-        """ Set SSID abstract method"""
+        """
+        Set the SSID of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``ssid`` is the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_ssid()")
 
     @abstractmethod
     def set_interface_from_database(self, device: str, index: str):
-        """ Set interface parameters from database abstract method"""
+        """
+        Configure the WiFi interface with the values stored in the database for the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_interface_from_database()")
 
     @abstractmethod
     def get_interface(self, device: str, index: str):
-        """ Get interface abstract method"""
+        """
+        Get the name of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the interface name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_interface()")
 
     @abstractmethod
     def check_interface(self, device: str, index: str):
-        """ Check interface abstract method"""
+        """
+        Check that the WiFi interface exists.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_interface()")
 
     @abstractmethod
     def get_ssid(self, device: str, index: str):
-        """ Get SSID abstract method"""
+        """
+        Get the SSID of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_ssid()")
 
     @abstractmethod
     def check_ssid(self, device: str, index: str, ssid: str):
-        """ Check SSID abstract method"""
+        """
+        Check that the WiFi interface uses the given SSID.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``ssid`` is the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_ssid()")
 
     @abstractmethod
     def set_encryption(self, device: str, index: str, encryption: str):
-        """ Set encryption abstract method"""
+        """
+        Set the encryption of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``encryption`` is the encryption mode
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_encryption()")
 
     @abstractmethod
     def get_encryption(self, device: str, index: str):
-        """ Get encryption abstract method"""
+        """
+        Get the encryption of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the encryption mode
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_encryption()")
 
     @abstractmethod
     def set_password(self, device: str, index: str, password: str):
-        """ Set password abstract method"""
+        """
+        Set the password of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``password`` is the WiFi password, or None for an open network
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_password()")
 
     @abstractmethod
     def get_password(self, device: str, index: str):
-        """ Get password abstract method"""
+        """
+        Get the password of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the password
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_password()")
 
     @abstractmethod
     def set_sae_parameters(self, device: str, index: str, password: str):
-        """ Set SAE parameters abstract method"""
+        """
+        Set the WPA3 SAE parameters of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``password`` is the WiFi password, or None for an open network
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_sae_parameters()")
 
     @abstractmethod
     def check_brctl_show(self, device: str, bridge: str, interface: str):
-        """ Check bridge control show abstract method"""
+        """
+        Check with ``brctl show`` that the interface is part of the bridge.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``bridge`` is the bridge interface name
+
+        - ``interface`` is the network interface name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_brctl_show()")
 
     @abstractmethod
     def get_dut_bridge_ipv4(self, device: str, bridge: str):
-        """ Get DUT bridge IPv4 abstract method"""
+        """
+        Get the IPv4 address of a bridge on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``bridge`` is the bridge interface name
+
+        - ``Returns`` the IPv4 address
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_dut_bridge_ipv4()")
 
     @abstractmethod
     def get_dut_wan_ipv4(self, device: str, interface: str):
-        """ Get DUT WAN IPv4 abstract method"""
+        """
+        Get the IPv4 address of the WAN interface of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the network interface name
+
+        - ``Returns`` the IPv4 address
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_dut_wan_ipv4()")
 
     @abstractmethod
     def set_wifi_iface_device(self, device: str, index: str, radio: str):
-        """ Set wifi interface device abstract method"""
+        """
+        Set the radio the WiFi interface belongs to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``radio`` is the radio the interface belongs to
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_wifi_iface_device()")
 
     @abstractmethod
     def get_wifi_iface_device(self, device: str, index: str):
-        """ Get wifi interface device abstract method"""
+        """
+        Get the radio the WiFi interface belongs to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the radio
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_wifi_iface_device()")
 
     @abstractmethod
     def set_wifi_iface_network(self, device: str, index: str, network: str):
-        """ Set wifi interface network abstract method"""
+        """
+        Set the network the WiFi interface is attached to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``network`` is the network the interface is attached to
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_wifi_iface_network()")
 
     @abstractmethod
     def get_wifi_iface_network(self, device: str, index: str):
-        """ Get wifi interface network abstract method"""
+        """
+        Get the network the WiFi interface is attached to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the network
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_wifi_iface_network()")
 
     @abstractmethod
     def set_wifi_iface_mode(self, device: str, index: str, mode: str):
-        """ Set wifi interface mode abstract method"""
+        """
+        Set the mode of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``mode`` is the interface mode, e.g. ``ap`` or ``sta``
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_wifi_iface_mode()")
 
     @abstractmethod
     def get_wifi_iface_mode(self, device: str, index: str):
-        """ Get wifi interface mode abstract method"""
+        """
+        Get the mode of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the mode
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_wifi_iface_mode()")
 
     @abstractmethod
     def check_mode(self, device: str, index: str, mode: str):
-        """ Check wifi interface mode abstract method"""
+        """
+        Check that the WiFi interface is in the given mode.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``mode`` is the interface mode, e.g. ``ap`` or ``sta``
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_mode()")
 
     @abstractmethod
     def set_wifi_iface_isolate(self, device: str, index: str, isolate: str):
-        """ Set wifi interface isolate abstract method"""
+        """
+        Set client isolation on the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``isolate`` is the client isolation setting
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_wifi_iface_isolate()")
 
     @abstractmethod
     def get_wifi_iface_isolate(self, device: str, index: str):
-        """ Get wifi interface isolate abstract method"""
+        """
+        Get the client isolation setting of the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the isolation setting
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_wifi_iface_isolate()")
 
     @abstractmethod
     def add_wifi_interface(self, device: str, index: str):
-        """ Add wifi interface abstract method"""
+        """
+        Add a WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement add_wifi_interface()")
 
     @abstractmethod
     def delete_wifi_interface(self, device: str, index: str):
-        """ Delete wifi interface abstract method"""
+        """
+        Delete a WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement delete_wifi_interface()")
 
     @abstractmethod
     def set_vap_device(self, device: str, index: str, radio: str):
-        """ Set VAP device abstract method"""
+        """
+        Set the radio of the VAP.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``radio`` is the radio the interface belongs to
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_vap_device()")
 
     @abstractmethod
     def get_vap_device(self, device: str, index: str):
-        """ Get VAP device abstract method"""
+        """
+        Get the radio of the VAP.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the radio
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_vap_device()")
 
     @abstractmethod
     def set_vap_name(self, device: str, index: str, name: str):
-        """ Set VAP name abstract method"""
+        """
+        Set the name of the VAP.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``name`` is the VAP name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_vap_name()")
 
     @abstractmethod
     def get_vap_name(self, device: str, index: str):
-        """ Get VAP name abstract method"""
+        """
+        Get the name of the VAP.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the VAP name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_vap_name()")
 
     @abstractmethod
     def check_vap_mode(self, device: str, index: str, mode: str):
-        """ Check VAP mode abstract method"""
+        """
+        Check that the VAP is in the given mode.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``mode`` is the interface mode, e.g. ``ap`` or ``sta``
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_vap_mode()")
 
     @abstractmethod
     def check_vap_ssid(self, device: str, index: str, ssid: str):
-        """ Check VAP SSID abstract method"""
+        """
+        Check that the VAP uses the given SSID.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``ssid`` is the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement check_vap_ssid()")
 
     @abstractmethod
     def set_interface_state(self, device: str, index: str, state: str):
-        """ Set interface state abstract method"""
+        """
+        Enable or disable the WiFi interface.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``state`` is the desired state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement set_interface_state()")
 
     @abstractmethod
     def get_interface_state(self, device: str, index: str):
-        """ Get interface state abstract method"""
+        """
+        Get whether the WiFi interface is enabled.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``index`` is the radio or interface index, as used by the platform plugin
+
+        - ``Returns`` the interface state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_interface_state()")

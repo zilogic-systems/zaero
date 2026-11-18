@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles various adb device.
+Abstract base class for ADB connection methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -22,16 +22,27 @@ from abc import ABC, abstractmethod
 
 
 class BaseAdbInterface(ABC):
-    """ This module provide abstract class for the APIs in one of the adb connections"""
+    """
+    Abstract methods a platform plugin implements for ADB connection.
+    Implemented by zaero.utils.adb_interface.AdbInterface.
+    """
     @abstractmethod
     def start_adb_server(self):
-        """ Start an adb server"""
+        """
+        Start the ADB server.
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement start_adb_server()")
 
     @abstractmethod
     def kill_adb_server(self):
-        """Kill adb server"""
+        """
+        Stop the ADB server.
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement kill_adb_server()")
 
@@ -42,36 +53,86 @@ class BaseAdbInterface(ABC):
                         return_stdout=True,
                         return_rc=False,
                         return_stderr=False):
-        """Execute adb command"""
+        """
+        Run an adb command on the device.
+
+        - ``device_id`` is the ADB serial number of the device
+
+        - ``command`` is the adb command without the leading ``adb``
+
+        - ``return_stdout`` if True, return the stdout
+
+        - ``return_rc`` if True, return the exit code
+
+        - ``return_stderr`` if True, return the stderr
+
+        - ``Returns`` the selected outputs in the order stdout, exit code, stderr
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement execute_command()")
 
     @abstractmethod
     def get_android_version(self, device_id):
-        """Get android version"""
+        """
+        Get the Android version of the device.
+
+        - ``device_id`` is the ADB serial number of the device
+
+        - ``Returns`` the major version as an integer
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_android_version()")
 
     @abstractmethod
     def close_connection(self, device: str):
-        """ Close Current adb connection"""
+        """
+        Close the ADB connection.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement close_connection()")
     
     @abstractmethod
     def connect_with_device(self, device: str):
-        """ To connect with a remote device using adb protocol """
+        """
+        Connect to the device over ADB.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` True if connected
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement connect_with_device()")
 
     @abstractmethod
     def switch_connection(self, alias: str):
-        """ Switch the adb connection to a specific device abstract method"""
+        """
+        Switch the active ADB connection to another device.
+
+        - ``alias`` is the connection name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement switch_connection()")
 
     @abstractmethod
     def check_adb_service(self):
-        """ Check whether adb service is running abstract method"""
+        """
+        Check whether the ADB server is running.
+
+        - ``Returns`` True if running
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement check_adb_service()")

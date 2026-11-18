@@ -12,3 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Robot Framework keyword classes. Each keyword reads the device's
+platform or connection from the database and dispatches the call.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+

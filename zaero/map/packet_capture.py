@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+Robot Framework keywords to capture packets with tcpdump on a device.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 
@@ -27,8 +29,9 @@ from typing import Optional, List, Dict
 class PacketCapture(DatabaseModule,
                     UtilsModules):
     """
-    PacketSniffer is a Robot Framework test library designed for  wireless sniffing automation.
-    Provides monitor mode control, remote sniffing, and .pcap file fetching.
+    Keywords to capture packets with tcpdump on a device and fetch the
+    capture files. Files are written to the ``pcap_remote_dir`` of the
+    device and copied into its ``pcap_local_dir``.
     """
 
     ROBOT_AUTO_KEYWORDS = False
@@ -49,6 +52,28 @@ class PacketCapture(DatabaseModule,
                             filter_expr: str = None,
                             filename: str = None,
                             timeout: int = None) -> bool:
+        """
+        Start a tcpdump capture in the background on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface to capture on
+
+        - ``filter_expr`` is the tcpdump filter expression, or None for no filter
+
+        - ``filename`` is the capture file name, created in ``pcap_remote_dir``
+
+        - ``timeout`` if given, tcpdump starts a new file every ``timeout``
+          seconds (``-G``)
+
+        - ``Returns`` True if the capture is started
+
+        - ``Raises`` RuntimeError if a command fails
+
+        Example:
+        | Start Frame Capture | controller | br-lan | icmp | ping.pcap |
+        | Start Frame Capture | controller | br-lan | ${None} | all.pcap | timeout=60 |
+        """
         zi_logger.print_context()
         utils_obj = self.get_utils_module_object('capture')
         result = utils_obj.start_frame_capture(device, interface, filter_expr, filename, timeout)
@@ -57,6 +82,16 @@ class PacketCapture(DatabaseModule,
     @keyword("Stop Frame Capture")
     def stop_frame_capture(self,
                            device: str) -> bool:
+        """
+        Stop all running tcpdump processes on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` RuntimeError if tcpdump could not be stopped
+
+        Example:
+        | Stop Frame Capture | controller |
+        """
         zi_logger.print_context()
         utils_obj = self.get_utils_module_object('capture')
         utils_obj.stop_frame_capture(device)
@@ -65,6 +100,21 @@ class PacketCapture(DatabaseModule,
     def download_captured_pcap(self,
                                device: str,
                                filename: str = None) -> str:
+        """
+        Copy a capture file from ``pcap_remote_dir`` of the device to its
+        ``pcap_local_dir``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``filename`` is the capture file name
+
+        - ``Returns`` the local path of the copied file
+
+        - ``Raises`` Exception if the file was not copied
+
+        Example:
+        | ${file} | Download Captured Pcap | controller | ping.pcap |
+        """
         zi_logger.print_context()
         utils_obj = self.get_utils_module_object('capture')
         file = utils_obj.download_captured_pcap(device, filename)
@@ -74,6 +124,19 @@ class PacketCapture(DatabaseModule,
     def delete_captured_pcap(self,
                              device: str ,
                              filename=None):
+        """
+        Delete a capture file from ``pcap_remote_dir`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``filename`` is the capture file name
+
+        - ``Raises`` ValueError if no file name is given, RuntimeError if the
+          file could not be deleted
+
+        Example:
+        | Delete Captured Pcap | controller | ping.pcap |
+        """
         zi_logger.print_context()
         utils_obj = self.get_utils_module_object('capture')
         files = utils_obj.delete_captured_pcap(device, filename)

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles client abstract method
+Abstract base class for WiFi and LAN client methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -21,18 +21,37 @@ from abc import ABC, abstractmethod
 
 
 class BaseFeatureClient(ABC):
-    """ This module provide abstract class for the APIs in client"""
+    """
+    Abstract methods a platform plugin implements for WiFi and LAN client.
+    Implemented by zaero.linux and zaero.android.
+    """
     @abstractmethod
     def get_client_os(self,
                       device: str):
-        """ Get os in client abstract method"""
+        """
+        Get the OS name of the client device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the OS name
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_os()")
         
     @abstractmethod
     def get_client_ipv4(self,
                         device: str):
-        """ Get ipv4 in client abstract method"""
+        """
+        Get the IPv4 address of the client device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the IPv4 address
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_ipv4()")
 
@@ -40,14 +59,30 @@ class BaseFeatureClient(ABC):
     def set_client_radio_state(self,
                                device:str,
                                state:int):
-        """ Enable/Disable radio in client abstract method"""
+        """
+        Turn the WiFi radio of the client on (``state`` 1) or off (``state`` 0).
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is the desired state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement set_client_radio_state()")
     
     @abstractmethod
     def get_client_radio_state(self,
                                device:str):
-        """ Retrieve the radio state in client abstract method"""
+        """
+        Get the WiFi radio state of the client.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if enabled, ``0`` if disabled
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_radio_state()")
     
@@ -55,14 +90,30 @@ class BaseFeatureClient(ABC):
     def set_client_interface_state(self,
                                    device: str,
                                    state: str):
-        """ Enable/Disable wifi interface in client abstract method"""
+        """
+        Bring the data interface of the client up (``state`` 1) or down (``state`` 0).
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is the desired state
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement set_client_interface_state()")
 
     @abstractmethod
     def get_client_interface_state(self,
                                    device: str):
-        """Retrieve wifi interface state in client abstract method"""
+        """
+        Get the state of the data interface of the client.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if up, ``0`` if down
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_interface_state()")
         
@@ -70,7 +121,15 @@ class BaseFeatureClient(ABC):
     def check_ap_ssid_visibility(self,
                                  device: str,
                                  ssid: str):
-        """ Check ap ssid visibility in client abstract method"""
+        """
+        Check that the SSID is visible in the WiFi scan of the client. Raise an exception if not.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_ssid_availability_in_client()")
         
@@ -78,7 +137,17 @@ class BaseFeatureClient(ABC):
     def get_ap_bssid_visibility(self,
                                 device: str,
                                 ssid: str):
-        """ Get Bssid Availablity in client abstract method"""
+        """
+        Get the BSSID of the access point broadcasting the SSID, from the WiFi scan of the client.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID
+
+        - ``Returns`` the BSSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_ap_bssid_visibility()")                                 
         
@@ -88,21 +157,49 @@ class BaseFeatureClient(ABC):
                                ssid: str,
                                password: str,
                                hidden:str):
-        """ Connect to ssid in client abstract method"""
+        """
+        Connect the client to the WiFi network.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID
+
+        - ``password`` is the WiFi password, or None for an open network
+
+        - ``hidden`` True if the SSID is hidden
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement connect_client_to_ssid()")    
         
     @abstractmethod
     def get_client_connected_ssid(self,
                                   device: str):
-        """ Get Connected ssid in client abstract method"""
+        """
+        Get the SSID the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_connected_ssid()") 
 
     @abstractmethod
     def get_client_channel(self,
                            device: str):
-        """ Get Channel in client abstract method"""
+        """
+        Get the channel of the WiFi network the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel number
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_channel()")
         
@@ -110,48 +207,100 @@ class BaseFeatureClient(ABC):
     def remove_client_connection(self,
                                  device: str,
                                  connection: str):
-        """ Remove connection in client abstract method"""
+        """
+        Delete a saved connection on the client.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``connection`` is the name of the saved connection, normally the SSID
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement remove_client_connection()")
         
     @abstractmethod
     def remove_all_wifi_connections(self,
                                     device: str):
-        """ Remove all wifi connection in client abstract method"""
+        """
+        Delete all saved WiFi connections on the client.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement remove_all_wifi_connections()")
         
     @abstractmethod
     def get_client_bandwidth(self,
                              device: str):
-        """ Get bandwidth in client abstract method"""
+        """
+        Get the channel width of the WiFi network the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel width
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_bandwidth()")
         
     @abstractmethod
     def get_client_encryption(self,
                               device: str):
-        """ Get encryption in client abstract method"""
+        """
+        Get the key management of the WiFi network the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the key management, e.g. ``WPA2-PSK``
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_encryption()")
 
     @abstractmethod
     def get_client_frequency(self,
                                 device: str):
-        """ Get frequency in client abstract method"""
+        """
+        Get the frequency of the WiFi network the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the frequency in MHz
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_frequency()")
 
     @abstractmethod
     def get_client_rssi(self,
                         device: str):
-        """ Get signal strength in client abstract method"""
+        """
+        Get the signal strength of the WiFi network the client is connected to.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the signal strength
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement get_client_rssi()")
 
     @abstractmethod
     def disconnect_wifi_client(self,
                                device: str):
-        """ Disconnect wifi in client abstract method"""
+        """
+        Disconnect the client from its WiFi network.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError(
             "Subclass must implement disconnect_wifi_client()")

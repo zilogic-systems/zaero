@@ -13,8 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles Linux WiFi client operations
-such as connecting, disconnecting, and status checking.
+Linux implementation of the ping methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -31,7 +30,9 @@ import zaero.utils.zi_logger as zi_logger
 class FeaturePing(BaseFeaturePing,
                   DatabaseModule,
                   ConnectionModules):
-    """Handle basic network reachability functions of linux client"""
+    """
+    Ping methods for Linux hosts. Pings are sent from the ``data_iface`` of the device.
+    """
     
     def __init__(self):
         zi_logger.print_context()
@@ -45,7 +46,18 @@ class FeaturePing(BaseFeaturePing,
                   dst_ip: str,
                   count: int) -> int:
         """
-        Ping from specified device to destination ipv4 address.
+        Ping an IPv4 destination with ``ping -4 -I <data_iface> -c <count>``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dst_ip`` is the destination address or host name
+
+        - ``count`` is the number of packets to send
+
+        - ``Returns`` the packet loss in percent as an integer
+
+        - ``Raises`` Exception if the command fails or the packet loss is not
+          found in the output
         """
         zi_logger.print_context()
         interface = self.db_obj.read_from_database(device, 'data_iface')
@@ -71,7 +83,18 @@ class FeaturePing(BaseFeaturePing,
                   dst_ip: str,
                   count: int) -> int:
         """
-        Ping from specified device to destination ipv6 address.
+        Ping an IPv6 destination with ``ping -6 -I <data_iface> -c <count>``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dst_ip`` is the destination address or host name
+
+        - ``count`` is the number of packets to send
+
+        - ``Returns`` the packet loss in percent as an integer
+
+        - ``Raises`` Exception if the command fails or the packet loss is not
+          found in the output
         """
         zi_logger.print_context()
         interface = self.db_obj.read_from_database(device, 'data_iface')

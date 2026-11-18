@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+Packet capture on a remote device with tcpdump.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 import os

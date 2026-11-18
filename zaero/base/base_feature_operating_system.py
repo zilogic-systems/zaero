@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 """
-This module handles operating system abstract methods
+Abstract base class for operating system information methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -21,19 +21,46 @@ from abc import ABC, abstractmethod
 
 
 class BaseFeatureOperatingSystem(ABC):
-    """ This module provides abstract class for the APIs in operating system"""
+    """
+    Abstract methods a platform plugin implements for operating system information.
+    Implemented by external platform plugins.
+    """
 
     @abstractmethod
     def get_openwrt_version(self, device: str):
-        """ Get OpenWrt version abstract method"""
+        """
+        Get the OpenWrt version of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the version string
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_openwrt_version()")
 
     @abstractmethod
     def get_os_release(self, device: str):
-        """ Get OS release abstract method"""
+        """
+        Get the OS release of the device, e.g. from /etc/os-release.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the OS release
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_os_release()")
 
     @abstractmethod
     def get_kernel_version(self, device: str):
-        """ Get kernel version abstract method"""
+        """
+        Get the kernel version of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the kernel version
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement get_kernel_version()")

@@ -13,6 +13,9 @@
 # limitations under the License.
 #
 """
+SSH connection module based on paramiko. Supports password, 'none'
+authentication and SSH tunnelling through another device.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 
@@ -58,14 +61,11 @@ class SshInterface(DatabaseModule):
 
     def __create_ssh_client(self) -> object:
         """
-        Create a ssh client object
+        Create a paramiko SSH client that accepts unknown host keys.
 
-        ``returns`` the create ssh client object
+        - ``Returns`` the SSHClient object
 
-        ``raise`` an exception if the client object could not be crated
-
-        Example:
-        | Create Ssh Client |
+        - ``Raises`` RuntimeError if the client could not be created
         """
         zi_logger.print_context()
         try:
@@ -83,15 +83,21 @@ class SshInterface(DatabaseModule):
                           timeout: int = 10,
                           sock = None):
         """
-        Register SSH connection parameters for the given host under an alias.
-        Creates the underlying Paramiko client object but does not connect yet;
-        call login() afterwards to authenticate.
+        Register the connection parameters of a host under an alias and create
+        its SSH client. Does not connect; call ``__login`` afterwards.
 
-        ``host`` is the IP address of the remote device and ``alias`` is the reference
-        name for this connection (auto-generated if None) and ``port`` is the SSH port
-        on the remote device and ``timeout`` is the connection timeout in seconds
+        - ``host`` is the IP address of the device
 
-        ``raise`` RuntimeError if the given alias is already registered
+        - ``alias`` is the connection name, normally the device name
+
+        - ``port`` is the SSH port
+
+        - ``timeout`` is the connection timeout in seconds
+
+        - ``sock`` is an open channel to connect through (SSH tunnel), or None
+          to connect directly
+
+        - ``Raises`` RuntimeError if the alias is None or already registered
         """
         zi_logger.print_context()
 
@@ -116,19 +122,22 @@ class SshInterface(DatabaseModule):
                 password: str = None):
 
         """
-        Login into the remote device.
+        Log in to the registered host and store ``connection_status`` in the
+        database.
 
-        Supports three auth modes:
-        1. Password auth (password is provided)
-        2. Key/agent auth (handled by connect() defaults if you re-enable them)
-        3. 'none' auth - for devices with no password set (e.g. prplOS/dropbear)
-            Triggered automatically when password is None.
+        If ``password`` is None, SSH 'none' authentication is used (e.g. for
+        prplOS or dropbear devices without a password). Otherwise password
+        authentication is used.
 
-        ``alias`` is the reference name of the connection to login
-        ``username`` is the username to login with
-        ``password`` is the password, or None to attempt passwordless (auth_none) login
+        - ``alias`` is the connection name
 
-        ``raise`` RuntimeError if login fails via all applicable methods
+        - ``username`` is the login user name
+
+        - ``password`` is the password, or None for 'none' authentication
+
+        - ``Returns`` True if logged in
+
+        - ``Raises`` RuntimeError if the login fails; the alias is removed
         """
         zi_logger.print_context()
         SshInterface.__objects[alias]['username'] = username
@@ -191,15 +200,23 @@ class SshInterface(DatabaseModule):
     def __login_with_none_auth(self, alias, host, port, timeout, username, sock=None):
         
         """
-        Authenticate using SSH 'none' auth - for devices with no password set
-        (e.g. prplOS/dropbear gateways that show "Authenticated ... using none").
+        Log in with SSH 'none' authentication and attach the transport to the
+        SSH client of the alias.
 
-        Builds a raw paramiko.Transport, performs auth_none(), then attaches
-        it to the existing SSHClient object so the rest of the class
-        (exec_command, get_transport, etc.) works unchanged.
+        - ``alias`` is the connection name
 
-        ``raise`` paramiko.BadAuthenticationType if the server does not allow
-                'none' auth, with the allowed methods listed in the exception
+        - ``host`` is the IP address of the device
+
+        - ``port`` is the SSH port
+
+        - ``timeout`` is the connection timeout in seconds
+
+        - ``username`` is the login user name
+
+        - ``sock`` is an open channel to connect through, or None
+
+        - ``Raises`` paramiko.BadAuthenticationType if the server does not allow
+          'none' authentication
         """
         zi_logger.print_context()
 
@@ -227,14 +244,14 @@ class SshInterface(DatabaseModule):
     def is_device_alive(self,
                         device: str):
         """
-        Check whether the SSH connection to the device is still active, and
-        store the result as ``connection_status`` in the database.
+        Check whether the SSH connection is active by running ``echo alive``,
+        and store the result as ``connection_status`` in the database.
 
-        ``device`` is the reference name of the remote device
+        - ``device`` is the device name
 
-        ``returns`` True if the device answers a test command, else False
+        - ``Returns`` True if the device answers, False otherwise
 
-        ``raise`` RuntimeError if no connection is registered for the device
+        - ``Raises`` RuntimeError if the device was never connected
         """
         zi_logger.print_context()
         if device not in SshInterface.__objects:
@@ -258,13 +275,15 @@ class SshInterface(DatabaseModule):
     def connect_with_device(self,
                             device: str):
         """
-        Connect to the given device.
+        Connect to the device with ``login_ip``, ``username``, ``password`` and
+        ``port`` from the config.
 
-        If ssh_tunnel is False:
-            Direct SSH connection.
+        If ``ssh_tunnel`` is True, the connection is opened through the SSH
+        connection of ``tunnel_device``, which must be connected first.
 
-        If ssh_tunnel is True:
-            Connect through the configured tunnel device.
+        - ``device`` is the device name
+
+        - ``Returns`` True if connected, False if the connection failed
         """
 
         zi_logger.print_context()
@@ -329,24 +348,28 @@ class SshInterface(DatabaseModule):
                         timeout: int = 10,
                         blocking_call:bool =True):
         """
-        Execute the given command in the remote device
+        Run a command on the device.
 
-        ``device`` is the reference name of the remote device
-        and ``command`` is the command to be executed in the remote device
-        and ``return_stdout`` is to return the stdout of the command executed
-        and ``return_stderr`` is to return the stderr of the command executed
-        and ``return_rc`` is to return the return code of the command executed
-        and ``blocking_call`` is to select whether the command has to be executed
-        in background or not
+        - ``device`` is the device name
 
-        ``returns`` the combination of stdout, std_err, and return code based on
-        the arguments provided
+        - ``command`` is the shell command to run
 
-        ``raise`` a runtime error if could not execute the command in remote device
+        - ``return_stdout`` if True, return the stdout
 
-        Example:
-        | Execute Ssh Command | ap | ls -l /                        | return_stderr=True |
-        | Execute Ssh Command | ap | uci set wireless.0.channel=11  | return_rc = True   |
+        - ``return_stderr`` if True, return the stderr
+
+        - ``return_rc`` if True, return the exit code
+
+        - ``timeout`` is the command timeout in seconds
+
+        - ``blocking_call`` if True, wait for the command to finish. If False,
+          start it on a new channel and return None
+
+        - ``Returns`` the selected values in the order stdout, stderr, exit code.
+          A single value is returned as is, several as a tuple, none as None
+
+        - ``Raises`` RuntimeError if the device is not alive or the command
+          could not be run
         """
         zi_logger.print_context()
         if not self.is_device_alive(device):
@@ -387,12 +410,7 @@ class SshInterface(DatabaseModule):
 
     
     def close_all_connections(self):
-        """
-        Close all the established SSH connections
-
-        Example:
-        | Close All Ssh Connections |
-        """
+        """Close all SSH connections and forget them."""
         zi_logger.print_context()
         aliases = SshInterface.__objects.keys()
         if len(aliases) >= 1:
@@ -409,15 +427,10 @@ class SshInterface(DatabaseModule):
     def close_connection(self,
                          alias: str):
         """
-        Close a SSH connection established with a device
+        Close the SSH connection of a device and forget it. Errors are logged,
+        not raised.
 
-        ``alias`` is the reference name assigned to the device
-
-        Example:
-        | Close Ssh Connection | ap                         |
-        | Close Ssh Connection | repeater_01                |
-        | Close Ssh Connection | ap_wlan_client_01          |
-        | Close Ssh Connection | repeater_01_wlan_client_01 |
+        - ``alias`` is the device name
         """
         zi_logger.print_context()
         try:
@@ -433,17 +446,15 @@ class SshInterface(DatabaseModule):
                  remote_file: str,
                  local_file: str):
         """
-        Retrieve a file from the remote machine.
+        Copy a file from the device to the local machine with SCP.
 
-        ``device`` is the reference name of the remote device
-        and ``remote_file`` location of the source file in the remote machine
-        and ``local_file`` destination path in the local machine
+        - ``device`` is the device name
 
-        ``raise`` runtime error if SFTP is not created or not
-                  able to copy the file
+        - ``remote_file`` is the file path on the device
 
-        Example:
-        | Ssh Get File | ap | /home/user/output.xml | /home/user/local/output
+        - ``local_file`` is the local destination path
+
+        - ``Raises`` RuntimeError if the file could not be copied
         """
         zi_logger.print_context()
         scp = SCPClient(SshInterface.__objects[device]['client'].get_transport())
@@ -467,17 +478,15 @@ class SshInterface(DatabaseModule):
                  local_file: str,
                  remote_file: str):
         """
-        Transfer a file from the local machine to the remote machine.
+        Copy a file from the local machine to the device with SCP.
 
-        ``device`` is the reference name of the remote device
-        and ``local_file`` location of the source file in the local machine
-        and ``remote_file`` destination file path in the remote machine
+        - ``device`` is the device name
 
-        ``raise`` runtime error if SFTP is not created or
-                  not able to copy the file
+        - ``local_file`` is the local file path
 
-        Example:
-        | Ssh Put File | ap | /home/user/top.sh | /home/user/remote/scripts
+        - ``remote_file`` is the destination path on the device
+
+        - ``Raises`` Exception if the file could not be copied
         """
         zi_logger.print_context()
         scp = SCPClient(SshInterface.__objects[device]['client'].get_transport())

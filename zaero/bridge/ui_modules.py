@@ -14,11 +14,22 @@
 #
 #from zaero.utils.ui.rdkb_ui import RdkbUi
 #from zaero.rdkb.feature_ui import RdkbUi
+"""
+Factory for the web UI plugin objects.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 import zaero.utils.zi_logger as zi_logger
 import importlib
 import inspect
 
 class UiModules:
+    """
+    Singleton factory that loads web UI plugins by platform name. A UI plugin
+    is the module ``<platform>.feature_ui`` containing a class named
+    ``FeatureUi``. One object is created per platform.
+    """
 
     __instance = None
     #__modules = {'rdkb' : RdkbUi}
@@ -35,6 +46,19 @@ class UiModules:
         zi_logger.print_context()
 
     def get_ui_module_object(self, module):
+        """
+        Get the UI object of the given platform, importing the module
+        ``<module>.feature_ui`` and creating its ``FeatureUi`` object on first use.
+
+        - ``module`` is the platform name, as given in the ``platform`` field of
+          the device. The module is imported without the ``zaero.`` prefix, so it
+          is expected to come from an external plugin package
+
+        - ``Returns`` the FeatureUi object
+
+        - ``Raises`` ModuleNotFoundError if the module does not exist and
+          Exception if the module has no ``FeatureUi`` class
+        """
         zi_logger.print_context()
         if module not in UiModules.__module_objects:
             imp_module = importlib.import_module(f"{module}.feature_ui")

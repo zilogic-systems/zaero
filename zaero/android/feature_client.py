@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 """
-This module handles Android WiFi client operations
-such as connecting, disconnecting, and status checking.
+Android implementation of the client methods, using adb shell commands
+(svc, dumpsys, wpa_cli, iw, ifconfig).
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -34,7 +34,10 @@ import zaero.utils.zi_logger as zi_logger
 class FeatureClient(BaseFeatureClient,
                     DatabaseModule,
                     ConnectionModules):
-    """Handles basic WiFi functionality keywords for Android client."""
+    """
+    Client methods for Android devices. Each device needs a ``device_id``
+    (the ADB serial number) and a ``data_iface`` in the config.
+    """
 
     def __init__(self):
         zi_logger.print_context()
@@ -44,6 +47,15 @@ class FeatureClient(BaseFeatureClient,
         zi_logger.log("android.feature_client.FeatureClient.__init__ : END")
 
     def __get_device_id(self, device: str) -> str:
+        """
+        Get the ``device_id`` (ADB serial number) of the device from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the device id
+
+        - ``Raises`` ValueError if it is empty
+        """
         zi_logger.print_context()
         device_id = self.db_obj.read_from_database(device, 'device_id')
         zi_logger.log(f"device_id={device_id}")
@@ -54,7 +66,13 @@ class FeatureClient(BaseFeatureClient,
     def __get_interface(self,
                         device: str) -> str:
         """
-        Get data interface from the specified device.
+        Get the ``data_iface`` of the device from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the interface name
+
+        - ``Raises`` ValueError if it is empty
         """
         zi_logger.print_context()
         interface = self.db_obj.read_from_database(device, 'data_iface')
@@ -66,7 +84,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_os(self,
                       device: str):
         """
-        Get OS name of the specified device
+        Get the OS name of the device.
+
+        Runs ``adb -s <device_id> shell uname``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the OS name, e.g. ``Linux``
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -84,7 +110,15 @@ class FeatureClient(BaseFeatureClient,
                                device: str,
                                state: int):
         """
-        Enable/Disable wifi radio in client
+        Turn the WiFi radio on or off.
+
+        Runs ``adb -s <device_id> shell svc wifi enable|disable``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is ``1`` to turn the radio on, any other value turns it off
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         device_id = self.__get_device_id(device)
@@ -106,7 +140,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_radio_state(self,
                                device: str) -> int:
         """
-        Get client current radio state
+        Get the WiFi radio state.
+
+        Runs ``adb -s <device_id> shell dumpsys wifi``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if enabled, ``0`` if disabled
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -129,7 +171,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_ipv4(self,
                         device: str) -> str:
         """
-        Get IPV4 address of the given client device.
+        Get the IPv4 address of the ``data_iface``.
+
+        Runs ``adb -s <device_id> shell ifconfig <iface>``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the IPv4 address as a string
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -149,7 +199,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_mac(self,
                        device: str) -> str:
         """
-        Get MAC address of the given client device.
+        Get the MAC address of the ``data_iface``.
+
+        Runs ``adb -s <device_id> shell ifconfig <iface>``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the MAC address as a string
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -169,8 +227,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_encryption(self,
                               device: str) -> str:
         """
-        Retrieve the encryption of the currently connected WiFi network on the
-        specified device
+        Get the key management of the connected WiFi network.
+
+        Runs ``adb -s <device_id> shell wpa_cli -i <iface> status``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the ``key_mgmt`` value, e.g. ``WPA2-PSK``
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -193,8 +258,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_frequency(self,
                              device: str) -> int:
         """
-        Retrieve the frequency of the currently connected WiFi network on the
-        specified device
+        Get the frequency of the connected WiFi network.
+
+        Runs ``adb -s <device_id> shell wpa_cli -i <iface> status``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the frequency in MHz as a string
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -216,7 +288,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_connected_ssid(self,
                                   device: str) -> str:
         """
-        Retrieve the SSID to which the client device connected currently.
+        Get the SSID the device is connected to.
+
+        Runs ``adb -s <device_id> shell wpa_cli -i <iface> status``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the SSID, with escaped bytes decoded as UTF-8
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -237,7 +317,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_connected_bssid(self,
                                    device: str) -> str:
         """
-        Retrieve the BSSID of the AP to which the client device is currently connected.
+        Get the BSSID of the access point the device is connected to.
+
+        Runs ``adb -s <device_id> shell wpa_cli -i <iface> status``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the BSSID as a string
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -259,8 +347,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_rssi(self,
                         device: str) -> str:
         """
-        Retrieve the RSSI value of the currently connected WiFi network on the
-        specified device
+        Get the signal strength of the connected WiFi network.
+
+        Runs ``adb -s <device_id> shell iw dev <iface> link``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the signal as a string, e.g. ``-45dBm``
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -282,8 +377,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_channel(self,
                            device: str) -> int:
         """
-        Retrieve the channel of the currently connected WiFi network on the
-        specified device.
+        Get the channel of the connected WiFi network.
+
+        Runs ``adb -s <device_id> shell iw dev <iface> info``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel number as an integer
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -306,8 +408,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_bandwidth(self,
                              device: str) -> str:
         """
-        Retrieve the bandwidth of the currently connected WiFi network on the
-        specified device
+        Get the channel width of the connected WiFi network.
+
+        Runs ``adb -s <device_id> shell iw dev <iface> info``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel width as a string, e.g. ``80 MHz``
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -331,7 +440,13 @@ class FeatureClient(BaseFeatureClient,
     def disconnect_wifi_client(self,
                                device: str):
         """
-        Disconnect the wifi client from the currently connected wireless network.
+        Disconnect the device from its WiFi network.
+
+        Runs ``adb -s <device_id> shell wpa_cli -i <iface> disconnect``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` ValueError if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -352,7 +467,13 @@ class FeatureClient(BaseFeatureClient,
                                   device: str,
                                   interface: str):
         """
-        Check interface should exists given device
+        Check that the interface exists, with ``adb shell ip link show``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface name
+
+        - ``Raises`` ValueError if the interface does not exist
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -371,7 +492,15 @@ class FeatureClient(BaseFeatureClient,
                                    device: str,
                                    state: int):
         """
-        Enable/Disable interface in client
+        Bring the ``data_iface`` up or down.
+
+        Runs ``adb -s <device_id> ifconfig <iface> up|down``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is ``1`` for up, any other value for down
+
+        - ``Raises`` ValueError if the interface does not exist, Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -395,7 +524,13 @@ class FeatureClient(BaseFeatureClient,
     def get_client_interface_state(self,
                                    device: str) -> int:
         """
-        Get current interface status
+        Get the state of the ``data_iface``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if up, ``0`` if down
+
+        - ``Raises`` ValueError if the interface does not exist
         """
         zi_logger.print_context()
         interface = self.__get_interface(device)
@@ -415,7 +550,15 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  interface: str) -> str:
         """
-        Status of radio interface default wifi interface.
+        Get whether the interface is up, from ``ifconfig -a``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface name
+
+        - ``Returns`` the command output if the interface is up, else ``down``
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -439,7 +582,17 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  ssid: str) -> str:
         """
-        Check the ssid of AP availablity in client
+        Check that the SSID appears in the WiFi scan.
+
+        Runs ``adb -s <device_id> shell iw dev <iface> scan``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to look for
+
+        - ``Returns`` the SSID found in the scan
+
+        - ``Raises`` Exception if the command fails or the SSID is not visible
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -470,7 +623,17 @@ class FeatureClient(BaseFeatureClient,
                                 device: str,
                                 ssid: str) -> str:
         """
-        Retrieve the BSSID for the given SSID.
+        Get the BSSID of the access points broadcasting the SSID, from the WiFi scan.
+
+        Runs ``adb -s <device_id> shell iw dev <iface> scan``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to look for
+
+        - ``Returns`` the BSSID of each matching scan entry, one per line
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -500,7 +663,19 @@ class FeatureClient(BaseFeatureClient,
                                password: str = None,
                                hidden:str = False):
         """
-        Connect the client to a specified WiFi SSID.
+        Add a WiFi network with ``wpa_cli``, select it and save the config, then wait 5 seconds.
+
+        Runs ``adb -s <device_id> shell 'wpa_cli -i <iface> add_network; ...'``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to connect to
+
+        - ``password`` is the WPA-PSK password, or None for an open network
+
+        - ``hidden`` True if the SSID is hidden (sets ``scan_ssid 1``)
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -536,7 +711,16 @@ class FeatureClient(BaseFeatureClient,
                             device: str,
                             interface: str) -> int:
         """
-        Get Current wifi connection id.
+        Get the network id of the current WiFi connection from
+        ``wpa_cli -i <iface> status``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the WiFi interface name
+
+        - ``Returns`` the network id as an integer
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -556,7 +740,15 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  connection_name=None):
         """
-        Remove the current connection based on name assigned to the connection.
+        Forget the currently connected WiFi network.
+
+        Runs ``adb -s <device_id> shell "cmd wifi forget-network <id>"``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``connection_name`` is not used; the current connection is always removed
+
+        - ``Raises`` RuntimeError if the network could not be forgotten
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -576,11 +768,14 @@ class FeatureClient(BaseFeatureClient,
     def __number_of_saved_networks(self,
                                    device: str) -> int:
         """
-        Get the value saved networks
+        Get the number of network ids to forget: the number of saved networks
+        in ``WifiConfigStore.xml`` plus 20.
 
-        -``device_id``: Specified a given adb device.
-        -``returns``: Return the number of saved networks
+        - ``device`` is the device name as defined in the infra.yaml config file
 
+        - ``Returns`` the number of network ids
+
+        - ``Raises`` RuntimeError if the result is 0
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -603,7 +798,13 @@ class FeatureClient(BaseFeatureClient,
     def remove_all_wifi_connections(self,
                                     device: str):
         """
-        Remove all wifi connections based on device.
+        Forget all saved WiFi networks, trying each network id in turn.
+
+        Runs ``adb -s <device_id> shell 'cmd wifi forget-network <id>'``; ``device_id`` and ``data_iface`` are read from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` RuntimeError if a command returns no output
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')

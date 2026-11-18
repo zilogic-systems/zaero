@@ -13,20 +13,35 @@
 # limitations under the License.
 #
 """
-This module handles ping function an abstract method
+Abstract base class for ping methods.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
 from abc import ABC, abstractmethod
 
 class BaseFeaturePing(ABC):
-    """ This module provide abstract class for the APIs in ping function"""
+    """
+    Abstract methods a platform plugin implements for ping.
+    Implemented by zaero.linux.
+    """
     @abstractmethod
     def ping_ipv4(self,
                   device: str,
                   dst_ip: str,
                   count: int):
-        """ ping ipv4 keyword is defined as an abstract method."""
+        """
+        Ping an IPv4 destination from the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dst_ip`` is the destination address
+
+        - ``count`` is the number of ping packets to send
+
+        - ``Returns`` the packet loss in percent
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement ping_ipv4()")
 
     @abstractmethod
@@ -34,5 +49,17 @@ class BaseFeaturePing(ABC):
                   device: str,
                   dst_ip: str,
                   count: int):
-        """ ping ipv6 keyword is defined as an abstract method."""
+        """
+        Ping an IPv6 destination from the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dst_ip`` is the destination address
+
+        - ``count`` is the number of ping packets to send
+
+        - ``Returns`` the packet loss in percent
+
+        - ``Raises`` NotImplementedError if the subclass does not implement it
+        """
         raise NotImplementedError("Subclass must implement ping_ipv6()")

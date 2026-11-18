@@ -15,11 +15,23 @@
 #from zaero.rdkb import Rdkb
 #from zaero.linux import Linux
 #from zaero.android import Android
+"""
+Factory for the platform plugin objects.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 import zaero.utils.zi_logger as zi_logger
 import importlib
 import inspect
 
 class PlatformModules:
+    """
+    Singleton factory that loads platform plugins by name. A platform plugin
+    is the package ``zaero.<platform>`` containing a class with the same name
+    as the package, e.g. ``zaero.linux.linux``. One object is created per
+    platform and shared by all devices of that platform.
+    """
 
     __instance = None
     __module_objects = {}
@@ -35,6 +47,18 @@ class PlatformModules:
         zi_logger.print_context()
 
     def get_platform_module_object(self, module):
+        """
+        Get the object of the given platform plugin, importing the package
+        ``zaero.<module>`` and creating the object on first use.
+
+        - ``module`` is the platform name, as given in the ``platform`` field of
+          the device, e.g. ``linux`` or ``android``
+
+        - ``Returns`` the platform plugin object
+
+        - ``Raises`` ModuleNotFoundError if the package does not exist and
+          Exception if the package has no class with the same name
+        """
         zi_logger.print_context()
         if module not in PlatformModules.__module_objects:
             imp_module = importlib.import_module(f"zaero.{module}")

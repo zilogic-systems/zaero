@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+iperf3 traffic generation on remote devices.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 
@@ -35,8 +37,8 @@ logging.getLogger("paramiko").setLevel(logging.CRITICAL)
 
 class TrafficGenerator(DatabaseModule, ConnectionModules):
     """
-    This module provides generic functionalities for generating network traffic using SSH,
-    including support for TCP, UDP, and multicast traffic flows.
+    Runs iperf3 servers and clients on devices through their connection
+    module, and handles the iperf3 log files.
     """
     def __init__(self):
         zi_logger.print_context()
@@ -51,7 +53,15 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
                            log_name: str,
                            port: int = 5201):
         """
-        Generate an iperf server and store logs locally.
+        Start ``iperf3 -s`` in the background on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``bind_ip`` is the address to bind to (``-B``)
+
+        - ``log_name`` is the log file on the device (``--logfile``)
+
+        - ``port`` is the server port (``-p``)
         """
         zi_logger.log(
             f"generic.generic_traffic_generator.start_iperf_server({device},"
@@ -92,7 +102,36 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
                            mode: str = None,
                            parallel_streams: int = None):
         """
-        Generate an iperf client and store logs locally.
+        Run ``iperf3 -c`` on the device and wait for it to finish.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``server_ip`` is the server address (``-c``)
+
+        - ``bind_ip`` is the local address to bind to (``-B``)
+
+        - ``protocol`` is ``tcp`` or ``udp`` (``-u``)
+
+        - ``log_name`` is the log file on the device (``--logfile``)
+
+        - ``port`` is the server port (``-p``)
+
+        - ``time`` is the test duration in seconds (``-t``); the command timeout
+          is ``time`` + 1 seconds
+
+        - ``bitrate`` is the target bitrate (``-b``), UDP only
+
+        - ``tos`` is the IP type of service (``-S``)
+
+        - ``window_size`` is the window size (``-w``), TCP only
+
+        - ``mode`` is ``reverse`` (``-R``), ``parallel`` (``-P``), ``bidir``
+          (``--bidir``) or None
+
+        - ``parallel_streams`` is the stream count, required for ``parallel``
+
+        - ``Raises`` ValueError for an invalid protocol, mode or stream count,
+          Exception if iperf3 writes to stderr
         """
         zi_logger.log(
             f"generic.generic_traffic_generator.start_iperf_client({device},"
@@ -154,7 +193,10 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
     def stop_iperf_server(self,
                           device: str):
         """
-        Stop the iperf server using pkill command
+        Stop all iperf3 processes on the device with ``killall iperf3``.
+        Errors are ignored.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
         """
         zi_logger.log(
             f"generic.feature_traffic_generator.stop_iperf_server({device})"
@@ -174,7 +216,13 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
                           device: str,
                           dirpath: str):
         """
-        Remove Iperf Logs From specified device and specified directory.
+        Delete all ``*.log`` files in a directory on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``dirpath`` is the directory on the device
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.log(
             f"generic.feature_traffic_generator.remove_iperf_logs({device}, {dirpath})"
@@ -194,7 +242,13 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
                          device: str,
                          filename: str):
         """
-        Remove Iperf Log From specified device.
+        Delete a file on the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``filename`` is the file path on the device
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.log(
             f"generic.feature_traffic_generator.remove_iperf_log({device}, {filename})"
@@ -217,7 +271,13 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
                       remote_file: str,
                       local_file: str):
         """
-        Retrieve a iperf log from the remote machine.
+        Copy an iperf3 log from the device to the local machine.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``remote_file`` is the log file path on the device
+
+        - ``local_file`` is the local destination path
         """
         zi_logger.log(
             f"generic.generic_traffic_generator.get_iperf_log({device},"
@@ -225,14 +285,20 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         
-        connection_obj.get_file(remote_file, local_file)
+        connection_obj.get_file(device, remote_file, local_file)
 
     def put_iperf_log(self,
                       device: str,
                       local_file: str,
                       remote_file: str):
         """
-        Transfer a file from the local machine to the remote machine.
+        Copy a file from the local machine to the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``local_file`` is the local file path
+
+        - ``remote_file`` is the destination path on the device
         """
         zi_logger.log(
             f"generic.generic_traffic_generator.put_iperf_log({device},"
@@ -240,4 +306,4 @@ class TrafficGenerator(DatabaseModule, ConnectionModules):
         connection = self.db_obj.read_from_database(device, 'connection')
         connection_obj = self.get_connection_module_object(connection)
         
-        connection_obj.put_file(local_file, remote_file)
+        connection_obj.put_file(device, local_file, remote_file)

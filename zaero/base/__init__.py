@@ -12,3 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Abstract base classes that define the methods a platform plugin
+implements.
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+

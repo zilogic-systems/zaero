@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Command line entry point of zaero.
+
+Usage: ``python -m zaero init_config``
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 import sys
 import shutil
 from pathlib import Path
@@ -20,6 +28,13 @@ import zaero.utils.zi_logger as zi_logger
 
 
 def init_configs():
+    """
+    Copy the default config files (``*.yaml`` from the zaero package config
+    directory) into the current working directory.
+
+    If a file already exists, the user is asked whether to overwrite it;
+    anything other than ``y``/``yes`` keeps the existing file.
+    """
     config_dir = files("zaero").joinpath("config")
     destination = Path.cwd()
 
@@ -43,6 +58,15 @@ def init_configs():
                 zi_logger.log(f"Created: {dst}")
 
 def main():
+    """
+    Parse the command line and run the given sub command.
+
+    Supported sub commands:
+    - ``init_config`` copies the default config files into the current
+      directory, see `init_configs`
+
+    Prints the usage when no sub command is given.
+    """
     if len(sys.argv) < 2:
         zi_logger.log("Usage:")
         zi_logger.log("    python -m zaero init_config")

@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 """
+Driver for the ZUS USB PDU controller over a serial port.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 import serial
@@ -25,7 +27,10 @@ class PDUError(Exception):
 
 
 class PduController(DatabaseModule):
-    """A library providing keywords for the ZUS-PDU Controller."""
+    """
+    Driver for the ZUS USB PDU controller. Outlets 1 to 8 are switched by
+    writing commands to the serial port.
+    """
 
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -39,16 +44,13 @@ class PduController(DatabaseModule):
             zi_logger.log("zaero.utila.PDUController.__init__() : END")
 
     def pdu_connect(self, device):
-        """Opens connection to the PDU Controller.
+        """
+        Open the serial port of the PDU at 115200 baud.
 
-        The PDU Controller to connect to is specified by ``device``. This is
-        generally the device name of the serial device corresponding to the USB
-        PDU. An example of serial device name in Linux, is "/dev/ttyUSB0".
+        - ``device`` is the serial port, e.g. ``/dev/ttyUSB0`` or ``COM1``.
+          The PduControl keyword passes the ``serial_port`` from the config
 
-        *Example*
-
-        | PDU Connect | /dev/ttyUSB0 |
-        | PDU Connect | COM1         |
+        - ``Raises`` PDUError if the port could not be opened
         """
         zi_logger.print_context()
         try:
@@ -67,7 +69,13 @@ class PduController(DatabaseModule):
 
     
     def pdu_disconnect(self,device):
-        """Closes connection to the PDU Controller."""
+        """
+        Close the serial port of the PDU.
+
+        - ``device`` is not used
+
+        - ``Raises`` PDUError if no PDU is connected
+        """
         zi_logger.print_context()
         try:
             self.PDU_interface.close()
@@ -76,14 +84,15 @@ class PduController(DatabaseModule):
             raise PDUError("No Device Connected") from error
 
     def _PDU(self, port: int, PDU_func=None) -> bytes:
-        """Converts cmd to hex and writes to serial Device.
+        """
+        Write a command to the PDU and read the reply up to ``OK``.
 
-        - port - Switch ON the specified PDU.
-        - PDU_func - Passing `toggle`/True/False. Defaults to ``True``.
+        - ``port`` is the outlet number, or ``A`` for all outlets
 
-        *Returns*
+        - ``PDU_func`` is ``on`` (``S<port>``), ``off`` (``C<port>``), ``read``
+          (``R``), or anything else to toggle (``T<port>``)
 
-        _bytes_ - Returns bytes to Serial device.
+        - ``Returns`` the reply as bytes
         """
         if PDU_func == "on":
             cmd = f"S{port}\r"
@@ -100,10 +109,10 @@ class PduController(DatabaseModule):
         return output
 
     def _check_ports(self) -> list:
-        """Checks for the currently active ports.
+        """
+        Read the outlet states from the PDU.
 
-        *Return:*
-        List - Return active port list.
+        - ``Returns`` the list of outlet numbers that are on
         """
         res = self._PDU(port=0, PDU_func="read")
         char_to_remove = b"R\r\nOK"
@@ -128,17 +137,14 @@ class PduController(DatabaseModule):
 
 
     def check_port_active(self, device, port_num: int) -> bool:
-        """Check the PDU active status specified by ``port``.
+        """
+        Check whether an outlet is on.
 
-        ``port`` must be a value in the range 1 to 8.
+        - ``device`` is not used
 
-        *Return:*
-        bool - Returns True if PDU is ON, else False
+        - ``port_num`` is the outlet number, 1 to 8
 
-        *Example*
-
-        | Check Port Active |  1 |
-        | Check Port Active |  5 |
+        - ``Returns`` True if the outlet is on, False otherwise
         """
         zi_logger.print_context()
         if port_num in self._check_ports():
@@ -148,10 +154,12 @@ class PduController(DatabaseModule):
 
 
     def check_all_active_ports(self,device) -> str:
-        """Checks for all the active ports.
+        """
+        Get the outlets that are on.
 
-        *Return:*
-        str - Return active ports in string format.
+        - ``device`` is not used
+
+        - ``Returns`` a string such as ``Currently on ports: 1, 3``
         """
         zi_logger.print_context()
         on_port_list = self._check_ports()
@@ -161,14 +169,14 @@ class PduController(DatabaseModule):
 
 
     def check_port_on(self,device, port: int) -> None:
-        """Checks specific port in a PDU is in ON state.
+        """
+        Check that an outlet is on.
 
-        ``port`` must be a value in the range 1 to 8.
+        - ``device`` is not used
 
-        *Example*
+        - ``port`` is the outlet number, 1 to 8
 
-        | Check Port ON |  1 |
-        | Check Port ON |  5 |
+        - ``Raises`` PDUError if the outlet is off
         """
         zi_logger.print_context()
         if port in self._check_ports():
@@ -177,14 +185,14 @@ class PduController(DatabaseModule):
 
 
     def check_port_off(self,device, port: int) -> None:
-        """Checks specific port in a PDU is in OFF state.
+        """
+        Check that an outlet is off.
 
-        ``port`` must be a value in the range 1 to 8.
+        - ``device`` is not used
 
-        *Example*
+        - ``port`` is the outlet number, 1 to 8
 
-        | Check Port OFF |  1 |
-        | Check Port OFF |  5 |
+        - ``Raises`` PDUError if the outlet is on
         """
         zi_logger.print_context()
         if port not in self._check_ports():
@@ -193,14 +201,14 @@ class PduController(DatabaseModule):
 
 
     def pdu_on(self, device, port: int) -> None:
-        """Turn ON the PDU specified by ``port``.
+        """
+        Turn on an outlet.
 
-        ``port`` must be a value in the range 1 to 8.
+        - ``device`` is not used
 
-        *Example*
+        - ``port`` is the outlet number, 1 to 8
 
-        | PDU ON |  1 |
-        | PDU ON |  5 |
+        - ``Raises`` PDUError if the PDU does not reply
         """
         zi_logger.print_context()
         if self._PDU(port, "on"):
@@ -209,14 +217,14 @@ class PduController(DatabaseModule):
 
 
     def pdu_off(self, device, port: int) -> None:
-        """Turn OFF the PDU switch specified by ``port``.
+        """
+        Turn off an outlet.
 
-        ``port`` must be a value in the range 1 to 8.
+        - ``device`` is not used
 
-        *Example*
+        - ``port`` is the outlet number, 1 to 8
 
-        | PDU OFF | 2 |
-        | PDU OFF | 4 |
+        - ``Raises`` PDUError if the PDU does not reply
         """
         zi_logger.print_context()
         if self._PDU(port, "off"):
@@ -226,7 +234,13 @@ class PduController(DatabaseModule):
 
 
     def pdu_switch_all(self,device) -> None:
-        """Sets all PDUs to ON state."""
+        """
+        Turn on all outlets.
+
+        - ``device`` is not used
+
+        - ``Raises`` PDUError if the PDU does not reply
+        """
         zi_logger.print_context()
         if self._PDU("A", "on"):
             return
@@ -234,7 +248,13 @@ class PduController(DatabaseModule):
 
 
     def pdu_reset_all(self,device) -> None:
-        """Sets all PDUs to OFF state."""
+        """
+        Turn off all outlets.
+
+        - ``device`` is not used
+
+        - ``Raises`` PDUError if the PDU does not reply
+        """
         zi_logger.print_context()
         if self._PDU("A", "off"):
             return

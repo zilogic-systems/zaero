@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 """
-This module handles Linux WiFi client operations
-such as connecting, disconnecting, and status checking.
+Linux implementation of the client methods, using nmcli, iw, wpa_cli
+and ifconfig over the device connection.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -33,7 +33,9 @@ import zaero.utils.zi_logger as zi_logger
 class FeatureClient(BaseFeatureClient,
                     DatabaseModule,
                     ConnectionModules):
-    """Handles basic WiFi functionality keywords for Linux client."""
+    """
+    Client methods for Linux hosts. The interface used is ``data_iface`` from the config.
+    """
     
     def __init__(self):
         zi_logger.print_context()
@@ -45,7 +47,13 @@ class FeatureClient(BaseFeatureClient,
     def get_client_os(self,
                       device) -> str:
         """
-        Get The Operating system.
+        Get the OS name of the device with ``uname``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the OS name, e.g. ``Linux``
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -59,7 +67,11 @@ class FeatureClient(BaseFeatureClient,
     def __get_interface(self,
                         device: str) -> str:
         """
-        Get interface of the specified device.
+        Get the ``data_iface`` of the device from the config.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the interface name
         """
         zi_logger.print_context()
         try:
@@ -74,7 +86,13 @@ class FeatureClient(BaseFeatureClient,
     def get_client_ipv4(self,
                         device: str) -> str:
         """
-        Get The IPv4 address from given interface.
+        Get the IPv4 address of the ``data_iface`` with ``ifconfig``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the IPv4 address as a string
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         interface = self.db_obj.read_from_database(device, 'data_iface')
@@ -94,7 +112,13 @@ class FeatureClient(BaseFeatureClient,
                                   device: str,
                                   interface: str) -> bool:
         """
-        Check interface should exists given device.
+        Check whether the interface exists, with ``ip link show``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface name
+
+        - ``Returns`` True if it exists, False otherwise
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -112,7 +136,16 @@ class FeatureClient(BaseFeatureClient,
                              device,
                              interface: str) ->  str:
         """
-        Retrieve the type of a network interface, such as wifi/ethernet.
+        Get the type of the interface from ``nmcli device show``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface name
+
+        - ``Returns`` the type, e.g. ``wifi`` or ``ethernet``
+
+        - ``Raises`` ValueError if the interface does not exist, Exception if the
+          type could not be read
         """
         zi_logger.print_context()
         is_available = self.__interface_should_exists(device,
@@ -138,7 +171,15 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  interface: str) -> str:
         """
-        Status of radio interface default wifi interface.
+        Get whether the interface is up, from the flags shown by ``ifconfig``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``interface`` is the interface name
+
+        - ``Returns`` ``up`` or ``down``
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         command = (
@@ -163,7 +204,13 @@ class FeatureClient(BaseFeatureClient,
                                device: str,
                                state: int):
         """
-        Enable/Disable wifi radio in client
+        Turn the WiFi radio on or off with ``nmcli radio wifi on|off``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is ``1`` to turn the radio on, any other value turns it off
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -183,7 +230,13 @@ class FeatureClient(BaseFeatureClient,
     def get_client_radio_state(self,
                              device: str) -> int:
         """
-        Check current radio status
+        Get the WiFi radio state with ``nmcli radio wifi``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if enabled, ``0`` if disabled
+
+        - ``Raises`` Exception if the command fails
         """
         zi_logger.print_context()
         command = "nmcli radio wifi"
@@ -207,7 +260,14 @@ class FeatureClient(BaseFeatureClient,
                                    device: str,
                                    state: int):
         """
-        Enable/Disable interface in client
+        Bring the ``data_iface`` up or down with ``ifconfig``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``state`` is ``1`` for up, any other value for down
+
+        - ``Raises`` ValueError if the interface is missing or is not a WiFi or
+          Ethernet interface, Exception if the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -235,7 +295,14 @@ class FeatureClient(BaseFeatureClient,
     def get_client_interface_state(self,
                                     device: str) -> int:
         """
-        Get current interface status
+        Get the state of the ``data_iface``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` ``1`` if up, ``0`` if down
+
+        - ``Raises`` ValueError if the interface is missing or is not a WiFi or
+          Ethernet interface
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -261,7 +328,14 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  ssid: str) -> str:
         """
-        Check the ssid of AP availablity in client
+        Check that the SSID appears in ``nmcli device wifi list``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to look for
+
+        - ``Raises`` Exception if the radio is off, the command fails or the
+          SSID is not visible
         """
         zi_logger.print_context()
         status = self.get_client_radio_state(device)
@@ -290,7 +364,16 @@ class FeatureClient(BaseFeatureClient,
                                 device: str,
                                 ssid: str) -> str:
         """
-        Retrieve the BSSID for the given SSID.
+        Get the BSSID of the first ``nmcli device wifi list`` entry that matches
+        the SSID.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to look for
+
+        - ``Returns`` the BSSID, or None if no MAC address is found
+
+        - ``Raises`` Exception if the radio is off or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -323,8 +406,24 @@ class FeatureClient(BaseFeatureClient,
                                bssid: str = None,
                                hidden: bool = False):
         """
-        Connect the client to a specified WiFi SSID.
-        Optionally connect to a specific BSSID.
+        Connect the ``data_iface`` to a WiFi network with
+        ``nmcli device wifi connect``.
+
+        If ``bssid`` is given, the connection is also locked to that BSSID
+        (``802-11-wireless.bssid``) and restarted.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``ssid`` is the SSID to connect to
+
+        - ``password`` is the WiFi password, or None for an open network
+
+        - ``bssid`` is the BSSID to connect to, or None for any
+
+        - ``hidden`` True if the SSID is hidden
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface,
+          Exception or RuntimeError if a command fails
         """
         zi_logger.print_context()
 
@@ -386,7 +485,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_connected_ssid(self,
                                   device: str) -> str:
         """
-        Retrieve the SSID to which the client device connected currently.
+        Get the SSID the device is connected to.
+
+        Uses ``iw dev <iface> link`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the SSID, with escaped bytes such as ``\\xe2`` decoded as UTF-8
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -412,8 +519,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_channel(self,
                            device: str) -> int:
         """
-        Retrieve the channel of the currently connected WiFi network on the
-        specified device
+        Get the channel of the connected WiFi network.
+
+        Uses ``iw dev <iface> info`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel number as an integer
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -442,7 +556,15 @@ class FeatureClient(BaseFeatureClient,
                                  device: str,
                                  connection_name: str):
         """
-        Remove the connection based on name assigned to the connection_obj.
+        Delete a saved connection with ``nmcli connection delete``, if it is
+        listed in ``nmcli connection show``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``connection_name`` is the connection name, normally the SSID
+
+        - ``Raises`` TypeError if the ``data_iface`` is not a WiFi or Ethernet
+          interface, RuntimeError if the connection could not be deleted
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -470,7 +592,12 @@ class FeatureClient(BaseFeatureClient,
     def remove_all_wifi_connections(self,
                                    device: str):
         """
-        Remove all wifi connections based on device.
+        Delete all saved WiFi connections listed by ``nmcli connection show``.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` TypeError if the ``data_iface`` is not a WiFi interface,
+          RuntimeError if a connection could not be deleted
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -504,8 +631,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_bandwidth(self,
                              device: str) -> str:
         """
-        Retrieve the bandwidth of the currently connected WiFi network on the
-        specified device
+        Get the channel width of the connected WiFi network.
+
+        Uses ``iw dev <iface> info`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the channel width as a string, e.g. ``80 MHz``
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -535,8 +669,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_encryption(self,
                               device: str) -> str:
         """
-        Retrieve the encryption of the currently connected WiFi network on the
-        specified device
+        Get the key management of the connected WiFi network.
+
+        Uses ``wpa_cli -i <iface> status`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the ``key_mgmt`` value, e.g. ``WPA2-PSK``
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -565,8 +706,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_frequency(self,
                              device: str) -> int:
         """
-        Retrieve the frequency of the currently connected WiFi network on the
-        specified device
+        Get the frequency of the connected WiFi network.
+
+        Uses ``iw dev <iface> link`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the frequency in MHz as an integer
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -594,8 +742,15 @@ class FeatureClient(BaseFeatureClient,
     def get_client_rssi(self,
                         device: str) -> str:
         """
-        Retrieve the RSSI value of the currently connected WiFi network on the
-        specified device
+        Get the signal strength of the connected WiFi network.
+
+        Uses ``iw dev <iface> link`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Returns`` the signal as a string, e.g. ``-45dBm``
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the command fails
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')
@@ -623,7 +778,13 @@ class FeatureClient(BaseFeatureClient,
     def disconnect_wifi_client(self,
                                device: str):
         """
-        Disconnect the wifi client from the currently connected wireless network.
+        Disconnect the device from its WiFi network and check that nmcli reports it as disconnected.
+
+        Uses ``nmcli device disconnect <iface>`` on the ``data_iface`` of the device.
+
+        - ``device`` is the device name as defined in the infra.yaml config file
+
+        - ``Raises`` ValueError if the ``data_iface`` is not a WiFi interface or the device could not be disconnected
         """
         zi_logger.print_context()
         connection = self.db_obj.read_from_database(device, 'connection')

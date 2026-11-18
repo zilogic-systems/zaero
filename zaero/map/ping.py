@@ -13,8 +13,7 @@
 # limitations under the License.
 #
 """
-This library provides keywords to handle basic network reachability functions
-for various clients across different platforms, including Windows and Linux.
+Robot Framework keywords to check network reachability.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -30,8 +29,8 @@ import zaero.utils.zi_logger as zi_logger
 class Ping(DatabaseModule,
            PlatformModules):
     """
-    This library provides keywords to handle basic network reachability functions
-    for various clients across different platforms, including Windows and Linux.
+    Ping keywords. Each keyword reads the ``platform`` of the device and
+    calls the ping method of that platform plugin.
     """
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -50,21 +49,22 @@ class Ping(DatabaseModule,
                   dst_ip: str,
                   count: int) -> str:
         """
-        Ping from specified device to destination ipv4 address.
+        Ping an IPv4 destination from the ``data_iface`` of the device.
 
-        - ``device`` The name of the client or DUT as defined in the config file.
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``dst_ip`` The destination IPv4 address to be pinged.
-        
-        - ``count`` The number of ICMPv4 packets to send.
-        
-        - ``Returns`` Packet loss as a percentage string. Example: 0.
+        - ``dst_ip`` is the IPv4 address or host name to ping
+
+        - ``count`` is the number of ICMP packets to send
+
+        - ``Returns`` the packet loss in percent as an integer, e.g. ``0``
+
+        - ``Raises`` Exception if the ping fails or the packet loss is not
+          found in the output
 
         Example:
-        | ${ret} | Ping Ipv4 |        ap        | google.com  | 4 |
-        | ${ret} | Ping Ipv4 | ap_lan_client_1  | 192.168.1.1 | 4 |
-        | ${ret} | Ping Ipv4 | ap_wlan_client_1 | 192.168.1.1 | 4 |
-
+        | ${loss} | Ping Ipv4 | controller_lan_client_1  | 192.168.1.1 | 4 |
+        | ${loss} | Ping Ipv4 | controller_wlan_client_1 | 8.8.8.8     | 4 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')
@@ -78,21 +78,21 @@ class Ping(DatabaseModule,
                   dst_ip: str,
                   count: int) -> str:
         """
-        Ping from specified device to destination ipv6 address.
+        Ping an IPv6 destination from the ``data_iface`` of the device.
 
-        - ``device`` The name of the client or DUT as defined in the config file.
+        - ``device`` is the device name as defined in the infra.yaml config file
 
-        - ``dst_ip`` The destination IPv6 address to be pinged.
-        
-        - ``count`` The number of ICMPv6 packets to send.
-        
-        - ``Returns`` Packet loss as a percentage string. Example: 0.
+        - ``dst_ip`` is the IPv6 address or host name to ping
+
+        - ``count`` is the number of ICMPv6 packets to send
+
+        - ``Returns`` the packet loss in percent as an integer, e.g. ``0``
+
+        - ``Raises`` Exception if the ping fails or the packet loss is not
+          found in the output
 
         Example:
-        | ${ret} | Ping Ipv6 |        ap        |       google.com     | 4 |
-        | ${ret} | Ping Ipv6 | ap_lan_client_1  | 2001:4860:4860::8888 | 4 |
-        | ${ret} | Ping Ipv6 | ap_wlan_client_1 | 2001:4860:4860::8888 | 4 |
-
+        | ${loss} | Ping Ipv6 | controller_wlan_client_1 | fe80::1 | 4 |
         """
         zi_logger.print_context()
         platform = self.db_obj.read_from_database(device, 'platform')

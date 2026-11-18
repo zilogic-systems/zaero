@@ -12,12 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+Factory for the connection modules (SSH, ADB and serial).
+
+Author: Zilogic Systems <code@zilogic.com>
+"""
+
 from zaero.utils.ssh_interface import SshInterface
 from zaero.utils.adb_interface import AdbInterface
 from zaero.utils.serial_interface import SerialInterface
 import zaero.utils.zi_logger as zi_logger
 
 class ConnectionModules:
+    """
+    Singleton factory that returns the connection object for a connection
+    type. Supported types are ``ssh`` (SshInterface), ``adb`` (AdbInterface)
+    and ``serial`` (SerialInterface). One object is created per type and
+    shared by all devices that use it.
+    """
 
     __instance = None
     __modules = {'ssh': SshInterface, 'adb': AdbInterface, 'serial': SerialInterface}
@@ -33,6 +45,17 @@ class ConnectionModules:
         zi_logger.print_context()
 
     def get_connection_module_object(self, module):
+        """
+        Get the connection object for the given connection type, creating it on
+        first use.
+
+        - ``module`` is the connection type: ``ssh``, ``adb`` or ``serial``,
+          as given in the ``connection`` field of the device
+
+        - ``Returns`` the shared connection object
+
+        - ``Raises`` KeyError if the connection type is not supported
+        """
         zi_logger.print_context()
         if module not in ConnectionModules.__module_objects:
             zi_logger.log(f"ConnectionModules.modules : {ConnectionModules.__modules}")

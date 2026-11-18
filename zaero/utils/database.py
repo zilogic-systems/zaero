@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 """
+In-memory database that holds the testbed config.
+
 Author: Zilogic Systems <code@zilogic.com>
 """
 import random
@@ -24,7 +26,10 @@ from robot.api.deco import keyword
 import zaero.utils.zi_logger as zi_logger
 
 class Database:
-    """A library to providing keywords to read all the parameters from config files"""
+    """
+    Holds the data of all config files in one dictionary shared by all
+    instances. Top-level keys are device names.
+    """
 
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -38,22 +43,16 @@ class Database:
     def initialize_database(self,
                             config_dir: str) -> None:
         """
-        Read each parameter and its value from all the config files present in
-        the given directory and save a dictionary in the class variable ``database``
+        Load every ``.yaml``, ``.yml`` and ``.json`` file in the directory into
+        the database. Sub directories and other files are skipped.
 
-        It provide support to read data of .yaml and .json file format.
+        Files are read in name order. When the same top-level key appears in
+        several files, the fields are merged and later files override earlier
+        ones.
 
-        ``config_dir`` is the directory under which all the config files are stored
+        - ``config_dir`` is the directory that holds the config files
 
-        ``raise`` exceptions when the given directory is not present or could not
-        open or read any config file present under the directory
-
-        Example:
-        | Initialize Database | /tmp/config_dir/ |
-        | Initialize Database | ${CONFIG_DIR}    |
-
-        In the second example, we pass the path value stored in a the variable
-        ${CONFIG_DIR} as argument to this keyword
+        - ``Raises`` RuntimeError if the directory or a file could not be read
         """
         zi_logger.print_context()
         try:
@@ -88,23 +87,15 @@ class Database:
     def read_from_database(self,
                            *args: list) -> object:
         """
-        Read data from the ``database`` dictionary
+        Read a value from the database.
 
-        ``args`` define how many layers we need to travel in the database
-        dictinary to fetch the required data
+        - ``args`` are 1 to 4 keys, followed level by level, e.g.
+          ``('controller', 'login_ip')`` returns ``database['controller']['login_ip']``.
+          With more than 4 keys, None is returned
 
-        ``raise`` exception if given key is not present in the dictionary
+        - ``Returns`` the stored value
 
-        Example:
-        |
-        |if the *args are -> 'ap', 'username'
-        |data to be returned is,
-        |    database['ap']['username']
-        |
-        |if the *args are -> 'ap', 'radio', 'index'
-        |data to be returned is,
-        |    database['ap']['radio']['index']
-        |
+        - ``Raises`` RuntimeError if a key is not present
         """
         zi_logger.print_context()
         arg_len = len(args)
@@ -126,6 +117,16 @@ the values {args}") from err
 
     def write_into_database(self,
                             *args: list) -> None:
+        """
+        Write a value into the database.
+
+        - ``args`` are 2 to 4 keys followed by the value, e.g.
+          ``('controller', 'connection_status', True)`` sets
+          ``database['controller']['connection_status']``. All keys except the
+          last must already exist. Other argument counts are ignored
+
+        - ``Raises`` RuntimeError if a key is not present
+        """
         zi_logger.print_context()
         arg_len = len(args)
         try:
@@ -143,7 +144,9 @@ the values {args}") from err
 
     def get_testbed_devices(self):
         """
-        Returns name of the list of devices present in config files
+        Get the names of the devices with ``device_present`` set to True.
+
+        - ``Returns`` a list of device names
         """
         zi_logger.print_context()
         devices = list(Database.__database.keys())
@@ -158,16 +161,24 @@ the values {args}") from err
 
     def get_live_devices(self):
         """
-        Returns name of the list of devices present in config files
+        Get the testbed devices whose ``connection_status`` is True.
+
+        Devices that were never connected have no ``connection_status``
+        and are not included.
+
+        - ``Returns`` a list of device names
         """
         zi_logger.print_context()
         devices = self.get_testbed_devices()
-        live_devices = [device for device in devices if Database.__database[device]['connection_status']]
+        live_devices = [device for device in devices
+                        if Database.__database[device].get('connection_status', False)]
         return live_devices
 
     def get_testbed_platforms(self):
         """
-        Returns each device's platform as list
+        Get the platforms used by the testbed devices.
+
+        - ``Returns`` a list of platform names without duplicates
         """
         zi_logger.print_context()
         devices = self.get_testbed_devices()
@@ -185,7 +196,13 @@ the values {args}") from err
     def read_device_connection(self,
                                device: str):
         """
-        Returns each device's platform as list
+        Get the ``connection`` type of a device.
+
+        - ``device`` is the device name
+
+        - ``Returns`` the connection type, e.g. ``ssh``
+
+        - ``Raises`` UnboundLocalError if the device has no ``connection`` field
         """
         zi_logger.print_context()
         try:
@@ -196,6 +213,12 @@ the values {args}") from err
         return connection
 
     def get_random_ssid(self):
+        """
+        Generate a random SSID: 4-6 upper case letters, 4-6 lower case letters
+        and 2-4 digits.
+
+        - ``Returns`` the SSID
+        """
         ssid_cap = "".join(random.choices(string.ascii_uppercase, k=random.randint(4, 6)))
         ssid_low = "".join(random.choices(string.ascii_lowercase, k=random.randint(4, 6)))
         ssid_int = "".join(random.choices(string.digits, k=random.randint(2, 4)))

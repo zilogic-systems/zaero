@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-This module handles various adb device.
+ADB connection module. Runs ``adb`` commands on the local machine.
 
 Author: Zilogic Systems <code@zilogic.com>
 """
@@ -31,7 +31,8 @@ import zaero.utils.zi_logger as zi_logger
 
 class AdbInterface(BaseAdbInterface):
     """
-    AdbInterface handles communication with Android devices via ADB(USB).
+    Connection module for Android devices over ADB. Used for devices with
+    ``connection: 'adb'``.
     """
     ROBOT_AUTO_KEYWORDS = False
     ROBOT_LIBRARY_SCOPE = 'Global'
@@ -40,14 +41,10 @@ class AdbInterface(BaseAdbInterface):
         zi_logger.print_context()
 
     def start_adb_server(self):
-        """Start the ADB server.
+        """
+        Start the ADB server with ``adb start-server``.
 
-        Raises:
-            RuntimeError: If the ADB server fails to start.
-
-        Examples:
-        | Start Adb server |
-
+        - ``Raises`` RuntimeError if adb is not installed or the command fails
         """
         zi_logger.print_context()
         try:
@@ -64,14 +61,10 @@ class AdbInterface(BaseAdbInterface):
             raise RuntimeError(f"ADB start-server failed: {e.stderr.strip()}") from e
 
     def kill_adb_server(self):
-        """kill the ADB server.
+        """
+        Stop the ADB server with ``adb kill-server``.
 
-        ``Raises``:
-            ``RuntimeError``: If the ADB server fails to kill.
-
-        Examples:
-        | Kill Adb server |
-
+        - ``Raises`` RuntimeError if adb is not installed or the command fails
         """
         zi_logger.print_context()
         try:
@@ -94,20 +87,33 @@ class AdbInterface(BaseAdbInterface):
                         return_rc=False,
                         return_stderr=False):
         """
-        Execute an adb command on an ADB-connected device.
+        Run ``adb -s <device_id> <command>`` on the local machine, after a
+        5 second delay.
 
-        - ``command``: Shell command that must NOT start with 'adb'.
-        - ``device_id``: Specific device ID (optional).
-        - ``return_stdout``: If True, includes stdout.
-        - ``return_rc``: If True, includes return code.
-        - ``return_stderr``: If True, includes stderr.
+        Note: this signature differs from the SSH and serial modules. It takes
+        ``device_id`` instead of ``device`` and has no ``timeout`` or
+        ``blocking_call`` arguments.
 
-        - Raises:
-            ``RuntimeError``: If the command is not running properly.
-        
-        |Example|
-        | Execute Adb Command | device_id=RZCT81F35HJ | command=shell input keyevent 224 |
-        | ${stdout}=  Execute Adb Command | device_id=RZCT81F35HJ | command=get-state | # state of default adb device |
+        - ``device_id`` is the ADB serial number of the device
+
+        - ``command`` is the adb command without the leading ``adb``,
+          e.g. ``shell uname``
+
+        - ``return_stdout`` if True, return the stdout (default: True)
+
+        - ``return_rc`` if True, return the exit code (default: False)
+
+        - ``return_stderr`` if True, return the stderr (default: False)
+
+        - ``Returns`` the selected values in the order stdout, exit code,
+          stderr. A single value is returned as is, several as a list, none
+          as None
+
+        - ``Raises`` RuntimeError if the command could not be run
+
+        Example:
+        | ${out} | Execute Command | RZCT81F35HJ | shell input keyevent 224 |
+        | ${out} | ${err} | Execute Command | RZCT81F35HJ | get-state | return_stderr=True |
         """
         zi_logger.print_context()        
         time.sleep(5)
@@ -137,14 +143,13 @@ class AdbInterface(BaseAdbInterface):
 
     def get_android_version(self, device_id: str) -> int:
         """
-        Retrieve the android version of given or specific device.
+        Get the Android version with ``adb shell getprop ro.build.version.release``.
 
-        -``device_id``: Specific device id
-        - ``returns``: Returns the android version of given device.
-                       For example: 15
-        Examples:
-        | ${output} | Get Android Version | device_id=RZCT81F35HJ | # ouptut: 14 |
+        - ``device_id`` is the ADB serial number of the device
 
+        - ``Returns`` the major version as an integer, e.g. ``14``
+
+        - ``Raises`` ValueError if no version is returned
         """
         zi_logger.print_context()
         command = f"shell getprop ro.build.version.release"
@@ -157,7 +162,14 @@ class AdbInterface(BaseAdbInterface):
     def close_connection(self,
                          device: str):
         """
-        Close on current adb connection
+        Stop the ADB server.
+
+        - ``device`` is not used; the server is stopped for all devices
+
+        - ``Raises`` RuntimeError if the server is still running afterwards
+
+        Example:
+        | Close Connection | android_client_1 |
         """
         zi_logger.print_context()
         self.kill_adb_server()
@@ -167,9 +179,13 @@ class AdbInterface(BaseAdbInterface):
     def connect_with_device(self,
                             device: str):
         """
-        To connect with a remote device using adb protocol
+        Start the ADB server.
 
-        ``raise`` Runtime error if could not connect with the given device
+        - ``device`` is the device name, used only in the log message
+
+        - ``Returns`` True if the server is running
+
+        - ``Raises`` RuntimeError if the server could not be started
         """
         zi_logger.print_context()
         
@@ -185,14 +201,20 @@ class AdbInterface(BaseAdbInterface):
     def switch_connection(self,
                           alias: str):
         """
-        Switch the adb connection into the specific device.
-        It's a dummy function.
+        Does nothing. Kept for the BaseAdbInterface API.
+
+        - ``alias`` is not used
+
+        Example:
+        | Switch Connection | android_client_1 |
         """
         zi_logger.print_context()
 
     def check_adb_service(self):
         """
-        Ensure that adb service running or not.
+        Check whether the ADB server is listening on port 5037 (``netstat``).
+
+        - ``Returns`` True if it is listening, False otherwise
         """
         zi_logger.print_context()
         result = subprocess.run(
