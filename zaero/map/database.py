@@ -90,7 +90,7 @@ class Database(DatabaseModule):
 
         Example:
         | Write Into Database | controller | login_ip | 192.168.1.1 |
-        | Write Into Database | controller | radio    | 2g_channel  | 6 |
+        | Write Into Database | controller | connection_status | ${False} |
         """
         zi_logger.print_context()
         ret = self.db_obj.write_into_database(*args)

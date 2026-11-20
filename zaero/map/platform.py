@@ -44,21 +44,29 @@ class platform(DatabaseModule):
         Load a platform plugin and add its keywords to the zaero library.
 
         The module ``os_name`` (or ``zaero.<os_name>`` when ``external`` is
-        False) is imported, and its class named ``os_name`` is added as a base
-        class of ``platform``. When Robot Framework is running, the zaero
-        library is reloaded so the new keywords become available.
+        False) is imported, and its class named ``os_name`` is added as the
+        first base class of the class this method is called through: the
+        ``zaero`` class when called as a keyword or on a zaero object. The
+        plugin's ``__init__`` is not run. When Robot Framework is running,
+        the zaero library is reloaded so the new keywords become available;
+        only plugin methods decorated with ``@keyword`` become keywords.
+
+        The plugin class must not inherit from ``abc.ABC``, so the in-tree
+        ``linux`` and ``android`` plugins cannot be loaded this way. They do
+        not need to be: the Client and Ping keywords load them automatically.
 
         - ``os_name`` is the plugin name. The module and its class must both
           have this name, e.g. ``rdkbmeshzap``
 
         - ``external`` True (default) to import an installed plugin package,
-          False to import a built-in plugin from zaero
+          False to import a plugin from the zaero package
 
-        - ``Raises`` Exception if the module has no class named ``os_name``
+        - ``Raises`` Exception if the module has no class named ``os_name``,
+          TypeError if the class inherits from ``abc.ABC``
 
         Example:
         | Configure Platform | rdkbmeshzap |
-        | Configure Platform | linux       | external=False |
+        | Configure Platform | myplugin    | external=False |
         """
         zi_logger.print_context()
         if external:
